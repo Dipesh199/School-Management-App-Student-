@@ -8,6 +8,7 @@ sealed class AppDest(val route: String) {
     data object Exams : AppDest("exams")
     data object More : AppDest("more")
     data object Attendance : AppDest("attendance")
+    data object Notices : AppDest("notices")
 
 
     data object ClassDetails : AppDest("class/{classId}") {
@@ -18,5 +19,10 @@ sealed class AppDest(val route: String) {
     data object AssignmentDetails : AppDest("assignment/{assignmentId}") {
         const val routePattern = "assignment/{assignmentId}"
         fun routeWithArg(id: String) = "assignment/$id"
+    }
+
+    data object NoticeDetails : AppDest("notice/{noticeId}") {     // ⬅️ NEW
+        const val routePattern = "notice/{noticeId}"
+        fun routeWithArg(id: String) = "notice/$id"
     }
 }

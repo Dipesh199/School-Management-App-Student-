@@ -27,6 +27,8 @@ import com.anever.school.ui.screens.ClassesScreen
 import com.anever.school.ui.screens.ExamsScreen
 import com.anever.school.ui.screens.HomeScreen
 import com.anever.school.ui.screens.MoreScreen
+import com.anever.school.ui.screens.NoticeDetailsScreen
+import com.anever.school.ui.screens.NoticesScreen
 
 @Composable
 fun AppScaffold() {
@@ -81,7 +83,7 @@ fun AppScaffold() {
                         navController.navigate(AppDest.Exams.route)
                     },
                     onOpenNotices = {
-                        navController.navigate(AppDest.More.route) // placeholder: notices in More
+                        navController.navigate(AppDest.Notices.route) // placeholder: notices in More
                     }
                 )
             }
@@ -93,7 +95,10 @@ fun AppScaffold() {
             }) }
             composable(AppDest.Exams.route) { ExamsScreen() }
             composable(AppDest.More.route) {
-                MoreScreen(onOpenAttendance = { navController.navigate(AppDest.Attendance.route) })
+                MoreScreen(
+                    onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
+                    onOpenNotices = { navController.navigate(AppDest.Notices.route) }
+                )
             }
 
             composable(
@@ -112,6 +117,19 @@ fun AppScaffold() {
             }
             // inside NavHost { ... }
             composable(AppDest.Attendance.route) { AttendanceScreen() }
+
+            composable(AppDest.Notices.route) {
+                NoticesScreen(onOpenDetails = { id ->
+                    navController.navigate(AppDest.NoticeDetails.routeWithArg(id))
+                })
+            }
+            composable(
+                route = AppDest.NoticeDetails.routePattern,
+                arguments = listOf(navArgument("noticeId") { type = NavType.StringType })
+            ) {
+                val id = it.arguments?.getString("noticeId")!!
+                NoticeDetailsScreen(id)
+            }
 
         }
     }

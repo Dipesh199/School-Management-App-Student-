@@ -163,6 +163,24 @@ class Repository(
         return req
     }
 
+    // ----- Notices -----
+    data class NoticeItem(val notice: Notice, val isBookmarked: Boolean)
+
+    fun getNotices(category: String? = null, query: String? = null): List<NoticeItem> {
+        val all = noticeDao.getAllNotices()
+            .filter { category == null || it.category.equals(category, ignoreCase = true) }
+            .filter { query.isNullOrBlank() || it.title.contains(query, ignoreCase = true) || it.body.contains(query, ignoreCase = true) }
+        return all.map { NoticeItem(it, NoticeBookmarks.ids.contains(it.id)) }
+    }
+
+    fun getNoticeById(id: String): Notice? =
+        noticeDao.getAllNotices().find { it.id == id }
+
+    fun toggleNoticeBookmark(id: String): Boolean {
+        val set = NoticeBookmarks.ids
+        return if (set.remove(id)) false else { set.add(id); true }
+    }
+
 }
 
 data class TodayClass(

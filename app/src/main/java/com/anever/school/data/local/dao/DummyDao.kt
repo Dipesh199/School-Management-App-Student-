@@ -43,6 +43,7 @@ data class ExamSlotExt(
 
 interface NoticeDao {
     fun getLatestNotices(limit: Int = 3): List<Notice>
+    fun getAllNotices(): List<Notice>
 }
 
 interface ResultDao {

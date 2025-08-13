@@ -110,6 +110,10 @@ object DummyDb {
     val requests: MutableList<Request> = mutableListOf()
 }
 
+object NoticeBookmarks {
+    val ids: MutableSet<String> = mutableSetOf()
+}
+
 class InMemorySubjectDao : SubjectDao {
     override fun getAllSubjects() = DummyDb.subjects
     override fun getSubjectById(id: String) = DummyDb.subjects.find { it.id == id }
@@ -143,7 +147,6 @@ class InMemoryExamDao(
     override fun getAllExams(): List<Exam> = listOf(DummyDb.exam)
 }
 
-// ⬅️ NEW
 class InMemoryResultDao : ResultDao {
     override fun getResultsForExam(examId: String): List<ExamResult> =
         DummyDb.results.filter { it.examId == examId }
@@ -153,6 +156,9 @@ class InMemoryResultDao : ResultDao {
 class InMemoryNoticeDao : NoticeDao {
     override fun getLatestNotices(limit: Int) =
         DummyDb.notices.sortedByDescending { it.postedAt }.take(limit)
+
+    override fun getAllNotices(): List<Notice> =
+        DummyDb.notices.sortedByDescending { it.postedAt }
 }
 
 class InMemoryAttendanceDao : AttendanceDao {

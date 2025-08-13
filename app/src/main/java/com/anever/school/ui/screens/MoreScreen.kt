@@ -7,23 +7,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 
 @Composable
-fun MoreScreen(onOpenAttendance: () -> Unit) {
+fun MoreScreen(
+    onOpenAttendance: () -> Unit,
+    onOpenNotices: () -> Unit
+) {
     Column(Modifier.padding(16.dp)) {
         Text("More")
-        ElevatedCard(Modifier.padding(top = 12.dp)) {
-            ListItem(
-                headlineContent = { Text("My Attendance") },
-                supportingContent = { Text("Calendar, subject stats, leave request") },
-                modifier = Modifier.padding(horizontal = 8.dp).clickable{ onOpenAttendance()},
-                overlineContent = {},
-                trailingContent = {},
-                leadingContent = null
-            )
-        }
+        ListItem(
+            headlineContent = { Text("My Attendance") },
+            supportingContent = { Text("Calendar, subject stats, leave request") },
+            modifier = Modifier.clickable { onOpenAttendance() }
+        )
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text("Notices / Announcements") },
+            supportingContent = { Text("School & class notices, exams, events") },
+            modifier = Modifier.clickable { onOpenNotices() }
+        )
     }
 }
-
