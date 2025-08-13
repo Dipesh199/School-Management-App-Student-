@@ -1,0 +1,166 @@
+package com.anever.school.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.anever.school.data.Repository
+import com.anever.school.data.TodayClass
+import com.anever.school.data.local.dao.ExamSlotExt
+import com.anever.school.data.model.Assignment
+import kotlinx.datetime.*
+
+@Composable
+fun HomeScreen(
+    onOpenClass: (String) -> Unit,
+    onOpenAssignment: (String) -> Unit,
+    onOpenExamSchedule: () -> Unit,
+    onOpenNotices: () -> Unit
+) {
+    val repo = remember { Repository() }
+    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val classes = remember { repo.getTodayClasses(today) }
+    val assignments = remember { repo.getToDoAssignments() }
+    val exams = remember { repo.getUpcomingExams(3) }
+    val notices = remember { repo.getLatestNotices(3) }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text(
+                "Today",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(today.toString(), style = MaterialTheme.typography.bodyMedium)
+        }
+
+        // Today’s Classes
+        item { SectionHeader("Today’s classes") }
+        if (classes.isEmpty()) {
+            item { EmptyState("No classes today") }
+        } else {
+            items(classes) { c -> TodayClassCard(c, onClick = { onOpenClass(c.id) }) }
+        }
+
+        // Due Assignments
+        item { SectionHeader("Due assignments") }
+        if (assignments.isEmpty()) {
+            item { EmptyState("All caught up") }
+        } else {
+            items(assignments) { a -> AssignmentCard(a, onClick = { onOpenAssignment(a.id) }) }
+        }
+
+        // Upcoming Exams
+        item { SectionHeader("Upcoming exams") }
+        if (exams.isEmpty()) {
+            item { EmptyState("No upcoming exams") }
+        } else {
+            items(exams) { e -> ExamSlotCard(e) }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onOpenExamSchedule) {
+                        Text("See full schedule")
+                    }
+                }
+            }
+        }
+
+        // Latest Notices
+        item { SectionHeader("Latest notices") }
+        if (notices.isEmpty()) {
+            item { EmptyState("No notices") }
+        } else {
+            items(notices) { n ->
+                ListItem(
+                    headlineContent = { Text(n.title) },
+                    supportingContent = { Text("${n.from} • ${n.postedAt.date} ${n.postedAt.time}") }
+                )
+                Divider()
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onOpenNotices) {
+                        Text("Open Notices")
+                    }
+                }
+            }
+        }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun EmptyState(text: String) {
+    AssistChip(onClick = {}, label = { Text(text) })
+}
+
+@Composable
+private fun TodayClassCard(c: TodayClass, onClick: () -> Unit) {
+    ElevatedCard(onClick = onClick) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                c.subject,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("${c.time} • Room ${c.room}", style = MaterialTheme.typography.bodyMedium)
+            Text("Teacher: ${c.teacher}", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun AssignmentCard(a: Assignment, onClick: () -> Unit) {
+    ElevatedCard(onClick = onClick) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                a.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("Due: ${a.dueAt.date} ${a.dueAt.time}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "Subject: ${a.subjectId}",
+                style = MaterialTheme.typography.bodySmall
+            ) // kept simple
+            AssistChip(onClick = onClick, label = { Text(a.status.name.uppercase()) })
+        }
+    }
+}
+
+@Composable
+private fun ExamSlotCard(e: ExamSlotExt) {
+    ElevatedCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                "${e.examName}: ${e.subject.name}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("${e.date} • ${e.start} - ${e.end}", style = MaterialTheme.typography.bodySmall)
+            Text("Room ${e.room} • Seat ${e.seatNo}", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
