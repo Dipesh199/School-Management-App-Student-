@@ -11,7 +11,9 @@ class Repository(
     private val assignmentDao: AssignmentDao = InMemoryAssignmentDao(),
     private val examDao: ExamDao = InMemoryExamDao(),
     private val noticeDao: NoticeDao = InMemoryNoticeDao(),
-    private val resultDao: ResultDao = InMemoryResultDao()          // ⬅️ NEW
+    private val resultDao: ResultDao = InMemoryResultDao(),
+    private val attendanceDao: AttendanceDao = InMemoryAttendanceDao(),
+    private val requestDao: RequestDao = InMemoryRequestDao()
 ) {
 
     fun getTodayClasses(today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date): List<TodayClass> {
@@ -90,6 +92,76 @@ class Repository(
     fun getSubjectById(id: String) = subjectDao.getSubjectById(id)
     fun getAssignmentById(id: String) = assignmentDao.getAssignmentById(id)
     fun getLatestNotices(limit: Int = 3): List<Notice> = noticeDao.getLatestNotices(limit)
+
+
+    data class DayMark(val date: LocalDate, val status: AttendanceStatus?) // null = no data
+
+    fun getMonthMarks(year: Int, month: Int): List<DayMark> {
+        val first = LocalDate(year, month, 1)
+        val nextMonth = if (month == 12) LocalDate(year + 1, 1, 1) else LocalDate(year, month + 1, 1)
+        val last = nextMonth.minus(DatePeriod(days = 1))
+
+        val records = attendanceDao.getAttendanceBetween(first, last).groupBy { it.date }
+        val days = generateSequence(first) { it.plus(DatePeriod(days = 1)) }
+            .takeWhile { it <= last }
+            .toList()
+
+        return days.map { d ->
+            val dayRecs = records[d].orEmpty()
+            val status = if (dayRecs.isEmpty()) null else {
+                when {
+                    dayRecs.any { it.status == AttendanceStatus.Absent } -> AttendanceStatus.Absent
+                    dayRecs.any { it.status == AttendanceStatus.Late } -> AttendanceStatus.Late
+                    else -> AttendanceStatus.Present
+                }
+            }
+            DayMark(d, status)
+        }
+    }
+
+    data class SubjectAttendanceRow(val subject: Subject, val presentPct: Int, val present: Int, val total: Int)
+
+    fun getSubjectAttendanceSummary(): List<SubjectAttendanceRow> {
+        val all = attendanceDao.getAllAttendance()
+        val bySubject = all.groupBy { it.subjectId }
+        return subjectDao.getAllSubjects().mapNotNull { s ->
+            val recs = bySubject[s.id].orEmpty()
+            if (recs.isEmpty()) return@mapNotNull null
+            val present = recs.count { it.status == AttendanceStatus.Present }
+            val total = recs.size
+            val pct = if (total == 0) 0 else (present * 100 / total)
+            SubjectAttendanceRow(s, pct, present, total)
+        }.sortedBy { it.subject.name }
+    }
+
+    fun get30DayTrend(): List<Int> {
+        val tz = TimeZone.currentSystemDefault()
+        val today = Clock.System.now().toLocalDateTime(tz).date
+        val start = today.minus(DatePeriod(days = 29))
+        val window = attendanceDao.getAttendanceBetween(start, today)
+        val byDate = window.groupBy { it.date }
+        val dates = generateSequence(start) { it.plus(DatePeriod(days = 1)) }.take(30).toList()
+        return dates.map { d ->
+            val recs = byDate[d].orEmpty()
+            if (recs.isEmpty()) 0
+            else (recs.count { it.status == AttendanceStatus.Present } * 100 / recs.size)
+        }
+    }
+
+    // ---------- Requests ----------
+    fun submitLeaveRequest(reason: String, from: LocalDate, to: LocalDate): Request {
+        val req = Request(
+            id = "req${System.currentTimeMillis()}",
+            type = "Leave",
+            reason = reason,
+            fromDate = from,
+            toDate = to,
+            status = "Pending",
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
+        requestDao.addRequest(req)
+        return req
+    }
 
 }
 

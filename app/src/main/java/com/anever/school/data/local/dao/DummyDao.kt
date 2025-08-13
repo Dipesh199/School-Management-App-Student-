@@ -1,11 +1,14 @@
 package com.anever.school.data.local.dao
 
 import com.anever.school.data.model.Assignment
+import com.anever.school.data.model.Attendance
 import com.anever.school.data.model.Exam
 import com.anever.school.data.model.ExamResult
 import com.anever.school.data.model.Notice
+import com.anever.school.data.model.Request
 import com.anever.school.data.model.Subject
 import com.anever.school.data.model.TimetableEntry
+import kotlinx.datetime.LocalDate
 
 interface SubjectDao {
     fun getAllSubjects(): List<Subject>
@@ -45,4 +48,14 @@ interface NoticeDao {
 interface ResultDao {
     fun getResultsForExam(examId: String): List<ExamResult>
     fun getAllResults(): List<ExamResult>
+}
+
+interface AttendanceDao {
+    fun getAllAttendance(): List<Attendance>
+    fun getAttendanceBetween(start: LocalDate, end: LocalDate): List<Attendance>
+}
+
+interface RequestDao {
+    fun addRequest(request: Request)
+    fun getAllRequests(): List<Request>
 }

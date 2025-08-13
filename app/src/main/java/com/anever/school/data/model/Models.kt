@@ -96,3 +96,13 @@ data class ExamResult(
     val grade: String
 )
 
+data class Request(
+    val id: String,
+    val type: String, // "Leave"
+    val reason: String,
+    val fromDate: LocalDate,
+    val toDate: LocalDate,
+    val status: String, // "Pending" | "Approved" | "Rejected"
+    val createdAt: LocalDateTime
+)
+

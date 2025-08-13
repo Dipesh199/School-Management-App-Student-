@@ -3,6 +3,7 @@ package com.anever.school.data.local.dao
 
 import com.anever.school.data.model.*
 import kotlinx.datetime.*
+import kotlin.random.Random
 
 object DummyDb {
     private val teacherSmith = Teacher("t1", "Mr. Smith")
@@ -72,6 +73,41 @@ object DummyDb {
         Notice("n3","Events","Tech Fest Registration","Register by Aug 25.", emptyList(),
             LocalDateTime(2025, 8, 9, 12, 10),"Cultural Committee")
     )
+
+    val attendance: List<Attendance> by lazy {
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val start = today.minus(DatePeriod(days = 44))
+        val days = generateSequence(start) { it.plus(DatePeriod(days = 1)) }
+            .takeWhile { it <= today }
+            .toList()
+
+        val subs = subjects.map { it.id }
+        val rnd = Random(42)
+        val list = mutableListOf<Attendance>()
+        var idCounter = 1
+        for (d in days) {
+            // Skip Sundays (no classes)
+            if (d.dayOfWeek == DayOfWeek.SUNDAY) continue
+            subs.forEach { sid ->
+                val r = rnd.nextInt(100)
+                val status = when {
+                    r < 80 -> AttendanceStatus.Present   // 80%
+                    r < 90 -> AttendanceStatus.Late      // 10%
+                    else   -> AttendanceStatus.Absent    // 10%
+                }
+                list += Attendance(
+                    id = "att${idCounter++}",
+                    date = d,
+                    subjectId = sid,
+                    status = status
+                )
+            }
+        }
+        list
+    }
+
+    // ⬇️ NEW: requests (mutable in-memory)
+    val requests: MutableList<Request> = mutableListOf()
 }
 
 class InMemorySubjectDao : SubjectDao {
@@ -117,4 +153,18 @@ class InMemoryResultDao : ResultDao {
 class InMemoryNoticeDao : NoticeDao {
     override fun getLatestNotices(limit: Int) =
         DummyDb.notices.sortedByDescending { it.postedAt }.take(limit)
+}
+
+class InMemoryAttendanceDao : AttendanceDao {
+    override fun getAllAttendance(): List<Attendance> = DummyDb.attendance
+
+    override fun getAttendanceBetween(start: LocalDate, end: LocalDate): List<Attendance> =
+        DummyDb.attendance.filter { it.date >= start && it.date <= end }
+}
+
+class InMemoryRequestDao : RequestDao {
+    override fun addRequest(request: Request) {
+        DummyDb.requests.add(request)
+    }
+    override fun getAllRequests(): List<Request> = DummyDb.requests
 }

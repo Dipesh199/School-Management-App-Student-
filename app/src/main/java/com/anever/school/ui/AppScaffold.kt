@@ -21,6 +21,7 @@ import androidx.navigation.navArgument
 import com.anever.school.ui.navigation.AppDest
 import com.anever.school.ui.screens.AssignmentDetailsScreen
 import com.anever.school.ui.screens.AssignmentsScreen
+import com.anever.school.ui.screens.AttendanceScreen
 import com.anever.school.ui.screens.ClassDetailsScreen
 import com.anever.school.ui.screens.ClassesScreen
 import com.anever.school.ui.screens.ExamsScreen
@@ -91,7 +92,9 @@ fun AppScaffold() {
                 navController.navigate(AppDest.AssignmentDetails.routeWithArg(id))
             }) }
             composable(AppDest.Exams.route) { ExamsScreen() }
-            composable(AppDest.More.route) { MoreScreen() }
+            composable(AppDest.More.route) {
+                MoreScreen(onOpenAttendance = { navController.navigate(AppDest.Attendance.route) })
+            }
 
             composable(
                 route = AppDest.ClassDetails.routePattern,
@@ -107,6 +110,9 @@ fun AppScaffold() {
                 val assignmentId = backStack.arguments?.getString("assignmentId")!!
                 AssignmentDetailsScreen(assignmentId)
             }
+            // inside NavHost { ... }
+            composable(AppDest.Attendance.route) { AttendanceScreen() }
+
         }
     }
 }
