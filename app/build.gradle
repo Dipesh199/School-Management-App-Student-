@@ -65,7 +65,7 @@ dependencies {
     implementation libs.androidx.lifecycle.runtime.ktx.v284
     implementation libs.androidx.lifecycle.viewmodel.compose
     implementation libs.kotlinx.datetime
-
+    implementation libs.androidx.foundation
 
 
 }

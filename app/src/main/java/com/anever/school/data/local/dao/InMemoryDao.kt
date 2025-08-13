@@ -16,9 +16,14 @@ object DummyDb {
     )
 
     val timetable = listOf(
-        TimetableEntry("tt1", 3, LocalTime(9, 0), LocalTime(9, 50), "s1", "A-201"),
-        TimetableEntry("tt2", 3, LocalTime(10, 0), LocalTime(10, 50), "s2", "B-105"),
-        TimetableEntry("tt3", 3, LocalTime(11, 10), LocalTime(12, 0), "s3", "Lab-2"),
+        TimetableEntry("tt1", 1, LocalTime(9, 0),  LocalTime(9, 50),  "s1", "A-201"),
+        TimetableEntry("tt2", 1, LocalTime(10, 0), LocalTime(10, 50), "s2", "B-105"),
+        TimetableEntry("tt3", 1, LocalTime(11, 10), LocalTime(12, 0),  "s3", "Lab-2"),
+        TimetableEntry("tt4", 2, LocalTime(9, 0),  LocalTime(9, 50),  "s2", "B-105"),
+        TimetableEntry("tt5", 2, LocalTime(10, 0), LocalTime(10, 50), "s1", "A-201"),
+        TimetableEntry("tt6", 3, LocalTime(9, 0),  LocalTime(9, 50),  "s3", "Lab-2"),
+        TimetableEntry("tt7", 4, LocalTime(9, 0),  LocalTime(9, 50),  "s1", "A-201"),
+        TimetableEntry("tt8", 5, LocalTime(10, 0), LocalTime(10, 50), "s3", "Lab-2"),
     )
 
     val assignments = listOf(
@@ -83,6 +88,10 @@ class InMemorySubjectDao : SubjectDao {
 class InMemoryTimetableDao : TimetableDao {
     override fun getTodaySchedule(dayOfWeek: Int) =
         DummyDb.timetable.filter { it.dayOfWeek == dayOfWeek }.sortedBy { it.start }
+
+    override fun getWeekSchedule(): Map<Int, List<TimetableEntry>> =
+        DummyDb.timetable.groupBy { it.dayOfWeek }
+            .mapValues { (_, v) -> v.sortedBy { it.start } }
 }
 
 class InMemoryAssignmentDao : AssignmentDao {

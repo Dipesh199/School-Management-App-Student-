@@ -23,19 +23,38 @@ class Repository(
                 subject = subj.name,
                 time = "${tt.start} - ${tt.end}",
                 room = tt.room,
-                teacher = subj.teacher.name
+                teacher = subj.teacher.name,
+                start = tt.start,
+                end = tt.end,
+                dayOfWeek = tt.dayOfWeek
             )
         }
     }
 
+    fun getWeekClasses(): List<DaySchedule> {
+        val byDay = timetableDao.getWeekSchedule()
+        return (1..7).map { d ->
+            val items = byDay[d].orEmpty().mapNotNull { tt ->
+                val subj = subjectDao.getSubjectById(tt.subjectId) ?: return@mapNotNull null
+                TodayClass(
+                    id = subj.id,
+                    subject = subj.name,
+                    time = "${tt.start} - ${tt.end}",
+                    room = tt.room,
+                    teacher = subj.teacher.name,
+                    start = tt.start,
+                    end = tt.end,
+                    dayOfWeek = tt.dayOfWeek
+                )
+            }
+            DaySchedule(dayOfWeek = d, classes = items)
+        }
+    }
+
     fun getToDoAssignments(): List<Assignment> = assignmentDao.getAssignmentsToDo()
-
     fun getUpcomingExams(limit: Int = 3): List<ExamSlotExt> = examDao.getUpcomingExamSlots(limit)
-
     fun getLatestNotices(limit: Int = 3): List<Notice> = noticeDao.getLatestNotices(limit)
-
     fun getSubjectById(id: String) = subjectDao.getSubjectById(id)
-
     fun getAssignmentById(id: String) = assignmentDao.getAssignmentById(id)
 }
 
@@ -44,5 +63,13 @@ data class TodayClass(
     val subject: String,
     val time: String,
     val room: String,
-    val teacher: String
+    val teacher: String,
+    val start: LocalTime,
+    val end: LocalTime,
+    val dayOfWeek: Int
+)
+
+data class DaySchedule(
+    val dayOfWeek: Int,               // 1..7
+    val classes: List<TodayClass>
 )

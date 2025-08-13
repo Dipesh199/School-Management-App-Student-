@@ -15,6 +15,7 @@ interface SubjectDao {
 
 interface TimetableDao {
     fun getTodaySchedule(dayOfWeek: Int): List<TimetableEntry>
+    fun getWeekSchedule(): Map<Int, List<TimetableEntry>>
 }
 
 interface AssignmentDao {
