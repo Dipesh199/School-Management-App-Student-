@@ -134,6 +134,17 @@ class Repository(
         }.sortedBy { it.subject.name }
     }
 
+    // ----- Attendance (per-day detail) -----
+    data class SubjectDayStatus(val subject: Subject, val status: AttendanceStatus?)
+
+    fun getDaySubjectMarks(date: LocalDate): List<SubjectDayStatus> {
+        val recs = attendanceDao.getAttendanceBetween(date, date).groupBy { it.subjectId }
+        return subjectDao.getAllSubjects().mapNotNull { s ->
+            val day = recs[s.id]?.firstOrNull() ?: return@mapNotNull null
+            SubjectDayStatus(subject = s, status = day.status)
+        }.sortedBy { it.subject.name }
+    }
+
     fun get30DayTrend(): List<Int> {
         val tz = TimeZone.currentSystemDefault()
         val today = Clock.System.now().toLocalDateTime(tz).date

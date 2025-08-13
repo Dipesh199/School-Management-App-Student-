@@ -3,6 +3,7 @@ package com.anever.school.ui.screens
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,6 +23,7 @@ import com.anever.school.data.Repository
 import com.anever.school.data.model.AttendanceStatus
 import kotlinx.datetime.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendanceScreen() {
     val repo = remember { Repository() }
@@ -41,17 +43,26 @@ fun AttendanceScreen() {
 
 /* ---------------- Calendar Tab ---------------- */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalendarTab(repo: Repository) {
     val tz = remember { TimeZone.currentSystemDefault() }
+    val today = remember { Clock.System.now().toLocalDateTime(tz).date }
+
     var yearMonth by remember {
-        val today = Clock.System.now().toLocalDateTime(tz).date
         mutableStateOf(today.year to today.monthNumber)
     }
 
     val (year, month) = yearMonth
     val marks = remember(yearMonth) { repo.getMonthMarks(year, month) }
     val dayOffset = firstDayOffset(year, month) // Monday=0 .. Sunday=6
+
+    // bottom sheet state
+    var sheetDate by remember { mutableStateOf<LocalDate?>(null) }
+    var showSheet by remember { mutableStateOf(false) }
+
+    // date range picker state (for Leave dialog)
+    var showLeave by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize()) {
         // Header + actions
@@ -86,12 +97,23 @@ private fun CalendarTab(repo: Repository) {
                 if (cell == null) {
                     Box(Modifier.aspectRatio(1f))
                 } else {
-                    DayCell(cell.date.dayOfMonth, cell.status)
+                    DayCell(
+                        date = cell.date,
+                        status = cell.status,
+                        isToday = cell.date == today,
+                        onClick = {
+                            sheetDate = cell.date
+                            showSheet = true
+                        }
+                    )
                 }
             }
         }
 
-        // Trend + request
+        // Legend
+        LegendRow()
+
+        // Trend (unchanged)
         val trend = remember { repo.get30DayTrend() }
         ElevatedCard(Modifier.padding(16.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -102,19 +124,47 @@ private fun CalendarTab(repo: Repository) {
         }
 
         // Request Leave
-        var showDialog by remember { mutableStateOf(false) }
         Row(
             Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            Button(onClick = { showDialog = true }) { Text("Request Leave") }
+            Button(onClick = { showLeave = true }) { Text("Request Leave") }
         }
-        if (showDialog) {
-            LeaveDialog(
-                onDismiss = { showDialog = false },
+
+        // Bottom sheet with per-day details
+        if (showSheet && sheetDate != null) {
+            ModalBottomSheet(
+                onDismissRequest = { showSheet = false }
+            ) {
+                val details = remember(sheetDate) { repo.getDaySubjectMarks(sheetDate!!) }
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Attendance on ${sheetDate!!}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    if (details.isEmpty()) {
+                        Text("No records for this day.")
+                    } else {
+                        details.forEach { row ->
+                            ListItem(
+                                headlineContent = { Text(row.subject.name, fontWeight = FontWeight.SemiBold) },
+                                supportingContent = { Text(row.subject.code) },
+                                trailingContent = {
+                                    StatusChip(row.status)
+                                }
+                            )
+                            HorizontalDivider()
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        }
+
+        // Leave dialog with Date Range Picker
+        if (showLeave) {
+            LeaveDialogWithRange(
+                onDismiss = { showLeave = false },
                 onSubmit = { reason, from, to ->
                     repo.submitLeaveRequest(reason, from, to)
-                    showDialog = false
+                    showLeave = false
                 }
             )
         }
@@ -122,7 +172,38 @@ private fun CalendarTab(repo: Repository) {
 }
 
 @Composable
-private fun DayCell(day: Int, status: AttendanceStatus?) {
+private fun LegendRow() {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LegendItem(color = MaterialTheme.colorScheme.primary, label = "Present")
+        LegendItem(color = MaterialTheme.colorScheme.tertiary, label = "Late")
+        LegendItem(color = MaterialTheme.colorScheme.error, label = "Absent")
+        Spacer(Modifier.weight(1f))
+        AssistChip(onClick = {}, label = { Text("Today") },
+            leadingIcon = {
+                Box(Modifier.size(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline))
+            }
+        )
+    }
+}
+
+@Composable
+private fun LegendItem(color: androidx.compose.ui.graphics.Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Dot(color)
+        Text(label, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+private fun DayCell(date: LocalDate, status: AttendanceStatus?, isToday: Boolean, onClick: () -> Unit) {
+    val borderColor = when {
+        isToday -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.outlineVariant
+    }
     val dot: (@Composable () -> Unit)? = when (status) {
         AttendanceStatus.Present -> { { Dot(MaterialTheme.colorScheme.primary) } }
         AttendanceStatus.Absent -> { { Dot(MaterialTheme.colorScheme.error) } }
@@ -132,12 +213,13 @@ private fun DayCell(day: Int, status: AttendanceStatus?) {
     Column(
         modifier = Modifier
             .aspectRatio(1f)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+            .border(width = if (isToday) 2.dp else 1.dp, color = borderColor, shape = MaterialTheme.shapes.small)
+            .clickable { onClick() }
             .padding(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(day.toString(), style = MaterialTheme.typography.bodyMedium)
+        Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal)
         Spacer(Modifier.height(2.dp))
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             if (dot != null) dot() else Box(Modifier.size(8.dp))
@@ -147,13 +229,30 @@ private fun DayCell(day: Int, status: AttendanceStatus?) {
 }
 
 @Composable
+private fun StatusChip(status: AttendanceStatus?) {
+    val (label, colors) = when (status) {
+        AttendanceStatus.Present -> "Present" to AssistChipDefaults.assistChipColors()
+        AttendanceStatus.Late -> "Late" to AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+        AttendanceStatus.Absent -> "Absent" to AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            labelColor = MaterialTheme.colorScheme.onErrorContainer
+        )
+        null -> "—" to AssistChipDefaults.assistChipColors()
+    }
+    AssistChip(onClick = {}, label = { Text(label) }, colors = colors)
+}
+
+@Composable
 private fun Dot(color: androidx.compose.ui.graphics.Color) {
     Box(
         Modifier.size(10.dp).clip(CircleShape).background(color)
     )
 }
 
-/* ---------------- Subject Tab ---------------- */
+/* ---------------- Subject Tab (unchanged core) ---------------- */
 
 @Composable
 private fun SubjectTab(repo: Repository) {
@@ -187,17 +286,41 @@ private fun SubjectTab(repo: Repository) {
     }
 }
 
-/* ---------------- Dialog & utils ---------------- */
+/* ---------------- Leave Dialog with Date Range Picker ---------------- */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LeaveDialog(
+private fun LeaveDialogWithRange(
     onDismiss: () -> Unit,
     onSubmit: (reason: String, from: LocalDate, to: LocalDate) -> Unit
 ) {
+    val tz = remember { TimeZone.currentSystemDefault() }
     var reason by remember { mutableStateOf("") }
-    var fromText by remember { mutableStateOf("") }
-    var toText by remember { mutableStateOf("") }
+    var fromDate by remember { mutableStateOf<LocalDate?>(null) }
+    var toDate by remember { mutableStateOf<LocalDate?>(null) }
+    var showPicker by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+
+    if (showPicker) {
+        val state = rememberDateRangePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val start = state.selectedStartDateMillis
+                    val end = state.selectedEndDateMillis
+                    if (start != null && end != null) {
+                        fromDate = millisToLocalDate(start, tz)
+                        toDate = millisToLocalDate(end, tz)
+                        showPicker = false
+                    }
+                }) { Text("OK") }
+            },
+            dismissButton = { TextButton(onClick = { showPicker = false }) { Text("Cancel") } }
+        ) {
+            DateRangePicker(state = state, title = { Text("Select leave dates") })
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -205,22 +328,34 @@ private fun LeaveDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = reason, onValueChange = { reason = it }, label = { Text("Reason") })
-                OutlinedTextField(value = fromText, onValueChange = { fromText = it }, label = { Text("From (YYYY-MM-DD)") })
-                OutlinedTextField(value = toText, onValueChange = { toText = it }, label = { Text("To (YYYY-MM-DD)") })
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = fromDate?.toString() ?: "",
+                        onValueChange = {},
+                        label = { Text("From") },
+                        modifier = Modifier.weight(1f),
+                        enabled = false
+                    )
+                    OutlinedTextField(
+                        value = toDate?.toString() ?: "",
+                        onValueChange = {},
+                        label = { Text("To") },
+                        modifier = Modifier.weight(1f),
+                        enabled = false
+                    )
+                }
+                TextButton(onClick = { showPicker = true }) { Text("Pick date range") }
                 if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                val from = runCatching { LocalDate.parse(fromText) }.getOrNull()
-                val to = runCatching { LocalDate.parse(toText) }.getOrNull()
                 when {
                     reason.isBlank() -> error = "Reason is required."
-                    from == null || to == null -> error = "Enter valid dates (YYYY-MM-DD)."
-                    to < from -> error = "To date must be after From date."
+                    fromDate == null || toDate == null -> error = "Please choose a date range."
+                    toDate!! < fromDate!! -> error = "To date must be after From date."
                     else -> {
-                        onSubmit(reason.trim(), from, to)
-                        onDismiss()
+                        onSubmit(reason.trim(), fromDate!!, toDate!!)
                     }
                 }
             }) { Text("Submit") }
@@ -228,6 +363,8 @@ private fun LeaveDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
+
+/* ---------------- Utils ---------------- */
 
 private fun monthName(m: Int): String = Month(m).name.lowercase().replaceFirstChar { it.titlecase() }
 
@@ -250,13 +387,10 @@ private fun Sparkline(values: List<Int>, modifier: Modifier = Modifier) {
         Canvas(modifier = modifier.fillMaxWidth().height(56.dp)) {}
         return
     }
-    val min = values.minOrNull()!!
-    val max = values.maxOrNull()!!
-
-// Capture colors in @Composable scope
+    val min = values.min()
+    val max = values.max()
     val primaryColor = MaterialTheme.colorScheme.primary
-    val baselineColor = MaterialTheme.colorScheme.outlineVariant
-
+    val outlineVariantColor = MaterialTheme.colorScheme.outlineVariant
     Canvas(modifier = modifier.fillMaxWidth().height(56.dp)) {
         val w = size.width
         val h = size.height
@@ -270,7 +404,11 @@ private fun Sparkline(values: List<Int>, modifier: Modifier = Modifier) {
             drawLine(color = primaryColor, start = prev, end = curr, strokeWidth = 3f)
             prev = curr
         }
-        // baseline
-        drawLine(color = baselineColor, start = Offset(0f, h - 1f), end = Offset(w, h - 1f), strokeWidth = 1f, alpha = 0.5f)
+        drawLine(color = outlineVariantColor, start = Offset(0f, h - 1f), end = Offset(w, h - 1f), strokeWidth = 1f, alpha = 0.5f)
     }
+}
+
+private fun millisToLocalDate(millis: Long, tz: TimeZone): LocalDate {
+    val instant = Instant.fromEpochMilliseconds(millis)
+    return instant.toLocalDateTime(tz).date
 }
