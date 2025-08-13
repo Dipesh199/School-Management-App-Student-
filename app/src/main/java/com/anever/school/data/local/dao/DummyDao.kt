@@ -4,9 +4,6 @@ import com.anever.school.data.model.Assignment
 import com.anever.school.data.model.Notice
 import com.anever.school.data.model.Subject
 import com.anever.school.data.model.TimetableEntry
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-
 
 interface SubjectDao {
     fun getAllSubjects(): List<Subject>
@@ -19,6 +16,7 @@ interface TimetableDao {
 }
 
 interface AssignmentDao {
+    fun getAllAssignments(): List<Assignment>
     fun getAssignmentsToDo(): List<Assignment>
     fun getAssignmentById(id: String): Assignment?
 }
@@ -30,9 +28,9 @@ interface ExamDao {
 data class ExamSlotExt(
     val examName: String,
     val subject: Subject,
-    val date: LocalDate,
-    val start: LocalTime,
-    val end: LocalTime,
+    val date: kotlinx.datetime.LocalDate,
+    val start: kotlinx.datetime.LocalTime,
+    val end: kotlinx.datetime.LocalTime,
     val room: String,
     val seatNo: String
 )

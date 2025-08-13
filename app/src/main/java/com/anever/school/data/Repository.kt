@@ -56,6 +56,9 @@ class Repository(
     fun getLatestNotices(limit: Int = 3): List<Notice> = noticeDao.getLatestNotices(limit)
     fun getSubjectById(id: String) = subjectDao.getSubjectById(id)
     fun getAssignmentById(id: String) = assignmentDao.getAssignmentById(id)
+    fun getAllAssignments(): List<Assignment> = assignmentDao.getAllAssignments()
+    fun getAllSubjects(): List<Subject> = subjectDao.getAllSubjects()
+
 }
 
 data class TodayClass(

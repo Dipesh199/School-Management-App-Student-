@@ -16,13 +16,13 @@ object DummyDb {
     )
 
     val timetable = listOf(
-        TimetableEntry("tt1", 1, LocalTime(9, 0),  LocalTime(9, 50),  "s1", "A-201"),
+        TimetableEntry("tt1", 1, LocalTime(9, 0), LocalTime(9, 50), "s1", "A-201"),
         TimetableEntry("tt2", 1, LocalTime(10, 0), LocalTime(10, 50), "s2", "B-105"),
-        TimetableEntry("tt3", 1, LocalTime(11, 10), LocalTime(12, 0),  "s3", "Lab-2"),
-        TimetableEntry("tt4", 2, LocalTime(9, 0),  LocalTime(9, 50),  "s2", "B-105"),
+        TimetableEntry("tt3", 1, LocalTime(11, 10), LocalTime(12, 0), "s3", "Lab-2"),
+        TimetableEntry("tt4", 2, LocalTime(9, 0), LocalTime(9, 50), "s2", "B-105"),
         TimetableEntry("tt5", 2, LocalTime(10, 0), LocalTime(10, 50), "s1", "A-201"),
-        TimetableEntry("tt6", 3, LocalTime(9, 0),  LocalTime(9, 50),  "s3", "Lab-2"),
-        TimetableEntry("tt7", 4, LocalTime(9, 0),  LocalTime(9, 50),  "s1", "A-201"),
+        TimetableEntry("tt6", 3, LocalTime(9, 0), LocalTime(9, 50), "s3", "Lab-2"),
+        TimetableEntry("tt7", 4, LocalTime(9, 0), LocalTime(9, 50), "s1", "A-201"),
         TimetableEntry("tt8", 5, LocalTime(10, 0), LocalTime(10, 50), "s3", "Lab-2"),
     )
 
@@ -61,22 +61,49 @@ object DummyDb {
         term = "Term 1",
         name = "Midterm Exams",
         schedule = listOf(
-            ExamSlot("s1", LocalDate(2025, 9, 3), LocalTime(9, 0), LocalTime(10, 30), "Hall-1", "A23"),
-            ExamSlot("s2", LocalDate(2025, 9, 5), LocalTime(9, 0), LocalTime(10, 30), "Hall-2", "B11"),
-            ExamSlot("s3", LocalDate(2025, 9, 8), LocalTime(9, 0), LocalTime(10, 30), "Hall-1", "C07")
+            ExamSlot(
+                "s1",
+                LocalDate(2025, 9, 3),
+                LocalTime(9, 0),
+                LocalTime(10, 30),
+                "Hall-1",
+                "A23"
+            ),
+            ExamSlot(
+                "s2",
+                LocalDate(2025, 9, 5),
+                LocalTime(9, 0),
+                LocalTime(10, 30),
+                "Hall-2",
+                "B11"
+            ),
+            ExamSlot(
+                "s3",
+                LocalDate(2025, 9, 8),
+                LocalTime(9, 0),
+                LocalTime(10, 30),
+                "Hall-1",
+                "C07"
+            )
         )
     )
 
     val notices = listOf(
-        Notice("n1", "Class", "CS Lab moved to Lab-3",
+        Notice(
+            "n1", "Class", "CS Lab moved to Lab-3",
             "Tomorrow's CS lab will be in Lab-3.", emptyList(),
-            LocalDateTime(2025, 8, 12, 18, 45), "Admin"),
-        Notice("n2", "Exams", "Midterm Timetable",
+            LocalDateTime(2025, 8, 12, 18, 45), "Admin"
+        ),
+        Notice(
+            "n2", "Exams", "Midterm Timetable",
             "Midterm exam schedule has been posted.", emptyList(),
-            LocalDateTime(2025, 8, 10, 9, 0), "Examination Cell"),
-        Notice("n3", "Events", "Tech Fest Registration",
+            LocalDateTime(2025, 8, 10, 9, 0), "Examination Cell"
+        ),
+        Notice(
+            "n3", "Events", "Tech Fest Registration",
             "Register by Aug 25.", emptyList(),
-            LocalDateTime(2025, 8, 9, 12, 10), "Cultural Committee")
+            LocalDateTime(2025, 8, 9, 12, 10), "Cultural Committee"
+        )
     )
 }
 
@@ -95,6 +122,9 @@ class InMemoryTimetableDao : TimetableDao {
 }
 
 class InMemoryAssignmentDao : AssignmentDao {
+    override fun getAllAssignments() =
+        DummyDb.assignments.sortedBy { it.dueAt }
+
     override fun getAssignmentsToDo() =
         DummyDb.assignments.filter { it.status == AssignmentStatus.todo }.sortedBy { it.dueAt }
 
