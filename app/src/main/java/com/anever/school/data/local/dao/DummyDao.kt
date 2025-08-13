@@ -1,6 +1,8 @@
 package com.anever.school.data.local.dao
 
 import com.anever.school.data.model.Assignment
+import com.anever.school.data.model.Exam
+import com.anever.school.data.model.ExamResult
 import com.anever.school.data.model.Notice
 import com.anever.school.data.model.Subject
 import com.anever.school.data.model.TimetableEntry
@@ -23,6 +25,7 @@ interface AssignmentDao {
 
 interface ExamDao {
     fun getUpcomingExamSlots(limit: Int = 3): List<ExamSlotExt>
+    fun getAllExams(): List<Exam>
 }
 
 data class ExamSlotExt(
@@ -37,4 +40,9 @@ data class ExamSlotExt(
 
 interface NoticeDao {
     fun getLatestNotices(limit: Int = 3): List<Notice>
+}
+
+interface ResultDao {
+    fun getResultsForExam(examId: String): List<ExamResult>
+    fun getAllResults(): List<ExamResult>
 }

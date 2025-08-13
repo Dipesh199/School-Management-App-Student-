@@ -87,3 +87,12 @@ data class Notice(
     val postedAt: LocalDateTime,
     val from: String
 )
+
+data class ExamResult(
+    val id: String,
+    val examId: String,
+    val subjectId: String,
+    val marks: Int,
+    val grade: String
+)
+
