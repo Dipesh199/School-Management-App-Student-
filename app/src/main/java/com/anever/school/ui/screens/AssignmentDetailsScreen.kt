@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import com.anever.school.data.model.AssignmentStatus
+import com.anever.school.ui.design.GradientCard
 import kotlinx.coroutines.delay
 import kotlinx.datetime.*
 
@@ -84,7 +85,7 @@ fun AssignmentDetailsScreen(assignmentId: String) {
         }
 
         // Meta
-        ElevatedCard {
+        GradientCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Subject & Teacher", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(
@@ -108,7 +109,7 @@ fun AssignmentDetailsScreen(assignmentId: String) {
         }
 
         // Description
-        ElevatedCard {
+        GradientCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Description", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(assignment.description, style = MaterialTheme.typography.bodyMedium)
@@ -130,7 +131,7 @@ fun AssignmentDetailsScreen(assignmentId: String) {
         }
 
         // Grade / Feedback (dummy display)
-        ElevatedCard {
+        GradientCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Grade & Feedback", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 if (assignment.status == AssignmentStatus.graded) {

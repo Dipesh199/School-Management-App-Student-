@@ -1,5 +1,6 @@
 package com.anever.school.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,9 @@ import com.anever.school.data.Repository
 import com.anever.school.data.TodayClass
 import com.anever.school.data.local.dao.ExamSlotExt
 import com.anever.school.data.model.Assignment
+import com.anever.school.ui.design.GradientCard
+import com.anever.school.ui.design.HeroHeader
+import com.anever.school.ui.design.StatPill
 import kotlinx.datetime.*
 
 @Composable
@@ -41,13 +45,29 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text(
-                "Today",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+            HeroHeader(
+                title = "Hi, Student 👋",
+                subtitle = "Here’s your day: classes, assignments & news"
             )
-            Spacer(Modifier.height(4.dp))
-            Text(today.toString(), style = MaterialTheme.typography.bodyMedium)
+        }
+
+        item {
+            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatPill("Attendance ${/* e.g. */ "82%"}")
+                StatPill("Due: ${/* e.g. */ "2"}", color = MaterialTheme.colorScheme.tertiary)
+                StatPill("Next exam ${/* e.g. */ "Sept 3"}", color = MaterialTheme.colorScheme.secondary)
+            }
+        }
+
+        item {
+
+            Row {
+                Text(
+                    "Today : ${today.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${today.dayOfMonth} ${today.year}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         // Today’s Classes
@@ -114,7 +134,7 @@ fun HomeScreen(
             item { EmptyState("No upcoming events") }
         } else {
             items(events) { ev ->
-                ElevatedCard {
+                GradientCard {
                     Column(
                         Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -147,7 +167,7 @@ fun HomeScreen(
             item { EmptyState("No reports yet") }
         } else {
             items(latestLF, key = { it.id }) { lf ->
-                ElevatedCard {
+                GradientCard {
                     Column(
                         Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -195,22 +215,23 @@ private fun EmptyState(text: String) {
 
 @Composable
 private fun TodayClassCard(c: TodayClass, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                c.subject,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text("${c.time} • Room ${c.room}", style = MaterialTheme.typography.bodyMedium)
-            Text("Teacher: ${c.teacher}", style = MaterialTheme.typography.bodySmall)
-        }
+    GradientCard( modifier = Modifier.clickable{ onClick()}) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    c.subject,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text("${c.time} • Room ${c.room}", style = MaterialTheme.typography.bodyMedium)
+                Text("Teacher: ${c.teacher}", style = MaterialTheme.typography.bodySmall)
+            }
     }
+
 }
 
 @Composable
 private fun AssignmentCard(a: Assignment, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick) {
+    GradientCard( modifier = Modifier.clickable{ onClick()}) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 a.title,
@@ -229,7 +250,7 @@ private fun AssignmentCard(a: Assignment, onClick: () -> Unit) {
 
 @Composable
 private fun ExamSlotCard(e: ExamSlotExt) {
-    ElevatedCard {
+    GradientCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 "${e.examName}: ${e.subject.name}",

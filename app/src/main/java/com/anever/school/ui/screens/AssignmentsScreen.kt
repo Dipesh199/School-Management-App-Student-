@@ -1,6 +1,7 @@
 package com.anever.school.ui.screens
 
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.anever.school.data.model.Assignment
 import com.anever.school.data.model.AssignmentStatus
 import com.anever.school.data.model.Subject
+import com.anever.school.ui.design.GradientCard
 import kotlinx.datetime.*
 
 @Composable
@@ -156,9 +158,8 @@ private fun AssignmentCard(item: AssignmentItem, onClick: () -> Unit) {
         if (isLate) append(" • LATE")
     }
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+    GradientCard(
+        modifier = Modifier.fillMaxWidth().clickable{ onClick }
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(a.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
