@@ -2,8 +2,10 @@ package com.anever.school.data.local.dao
 
 import com.anever.school.data.model.Assignment
 import com.anever.school.data.model.Attendance
+import com.anever.school.data.model.Book
 import com.anever.school.data.model.Exam
 import com.anever.school.data.model.ExamResult
+import com.anever.school.data.model.Loan
 import com.anever.school.data.model.Notice
 import com.anever.school.data.model.Request
 import com.anever.school.data.model.Route
@@ -65,4 +67,13 @@ interface RequestDao {
 interface TransportDao {
     fun getRoute(): Route
     fun updateStudentStop(stopId: String): Route
+}
+
+interface LibraryDao {
+    fun getAllBooks(): List<Book>
+    fun searchBooks(query: String): List<Book>
+    fun getLoans(): List<Loan>
+    fun putLoan(loan: Loan)
+    fun updateBook(updated: Book)
+    fun deleteLoan(loanId: String)
 }

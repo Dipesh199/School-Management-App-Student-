@@ -123,3 +123,24 @@ data class Route(
     val studentStopId: String
 )
 
+data class Book(
+    val id: String,
+    val title: String,
+    val author: String,
+    val isbn: String,
+    val copies: Int,
+    val available: Int
+)
+
+enum class LoanStatus { Reserved, Current, Returned }
+
+
+data class Loan(
+    val id: String,
+    val bookId: String,
+    val issueDate: LocalDate,
+    val dueDate: LocalDate,
+    val status: LoanStatus,
+    val renewals: Int = 0 // number of renews used
+)
+

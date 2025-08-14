@@ -10,6 +10,8 @@ sealed class AppDest(val route: String) {
     data object Attendance : AppDest("attendance")
     data object Notices : AppDest("notices")
     data object Transport : AppDest("transport")
+    data object Library : AppDest("library")
+
 
 
 

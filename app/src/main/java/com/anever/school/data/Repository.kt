@@ -14,7 +14,8 @@ class Repository(
     private val resultDao: ResultDao = InMemoryResultDao(),
     private val attendanceDao: AttendanceDao = InMemoryAttendanceDao(),
     private val requestDao: RequestDao = InMemoryRequestDao(),
-    private val transportDao: TransportDao = InMemoryTransportDao()
+    private val transportDao: TransportDao = InMemoryTransportDao(),
+    private val libraryDao: LibraryDao = InMemoryLibraryDao()
 ) {
 
     fun getTodayClasses(today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date): List<TodayClass> {
@@ -248,6 +249,109 @@ class Repository(
         return req
     }
 
+    // ---------- Library ----------
+    data class BookRow(val book: Book, val isBorrowed: Boolean, val reservedLoanId: String?)
+
+
+    fun browseBooks(query: String): List<BookRow> {
+        val books = if (query.isBlank()) libraryDao.getAllBooks() else libraryDao.searchBooks(query)
+        val loans = libraryDao.getLoans()
+        val borrowedIds = loans.filter { it.status == LoanStatus.Current }.map { it.bookId }.toSet()
+        val reservedByMe: Map<String, String> = loans
+            .filter { it.status == LoanStatus.Reserved }
+            .associate { it.bookId to it.id } // bookId -> loanId (reservation)
+        return books.map { b ->
+            BookRow(
+                book = b,
+                isBorrowed = b.id in borrowedIds,
+                reservedLoanId = reservedByMe[b.id]
+            )
+        }.sortedBy { it.book.title }
+    }
+
+    fun getLoansWithMeta(): List<LoanMeta> {
+        val loans = libraryDao.getLoans().filter { it.status == LoanStatus.Current || it.status == LoanStatus.Reserved }
+        val books = libraryDao.getAllBooks().associateBy { it.id }
+        return loans.mapNotNull { loan ->
+            val book = books[loan.bookId] ?: return@mapNotNull null
+            LoanMeta(loan, book, computeDaysLeft(loan), computeFine(loan))
+        }.sortedBy { it.loan.dueDate }
+    }
+
+    data class LoanMeta(val loan: Loan, val book: Book, val daysLeft: Int, val fine: Int)
+
+    private fun computeDaysLeft(loan: Loan): Int {
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        return (loan.dueDate.toEpochDays() - today.toEpochDays())
+    }
+
+    private fun computeFine(loan: Loan, ratePerDay: Int = 1): Int {
+        val overdue = -computeDaysLeft(loan)
+        return if (overdue > 0) overdue * ratePerDay else 0
+    }
+
+    fun reserveBook(bookId: String): Result<String> {
+        val books = libraryDao.getAllBooks()
+        val book = books.firstOrNull { it.id == bookId }
+            ?: return Result.failure(IllegalArgumentException("Book not found"))
+
+        if (book.available <= 0) return Result.failure(IllegalStateException("No copies available"))
+
+        val loans = libraryDao.getLoans()
+        val alreadyBorrowed = loans.any { it.bookId == bookId && it.status == LoanStatus.Current }
+        if (alreadyBorrowed) return Result.failure(IllegalStateException("You already borrowed this book"))
+
+        val alreadyReserved = loans.any { it.bookId == bookId && it.status == LoanStatus.Reserved }
+        if (alreadyReserved) return Result.failure(IllegalStateException("You already reserved this book"))
+
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val holdUntil = today.plus(DatePeriod(days = 3)) // reservation hold
+        val loan = Loan(
+            id = "l${System.currentTimeMillis()}",
+            bookId = bookId,
+            issueDate = today,
+            dueDate = holdUntil,
+            status = LoanStatus.Reserved,
+            renewals = 0
+        )
+        libraryDao.putLoan(loan)
+        libraryDao.updateBook(book.copy(available = book.available - 1))
+        return Result.success("Reserved: ${book.title} (hold until $holdUntil)")
+    }
+
+    fun cancelReservation(loanId: String): Result<String> {
+        val loans = libraryDao.getLoans()
+        val loan = loans.firstOrNull { it.id == loanId }
+            ?: return Result.failure(IllegalArgumentException("Reservation not found"))
+
+        if (loan.status != LoanStatus.Reserved) {
+            return Result.failure(IllegalStateException("Only reservations can be canceled"))
+        }
+
+        val book = libraryDao.getAllBooks().firstOrNull { it.id == loan.bookId }
+            ?: return Result.failure(IllegalStateException("Book not found"))
+
+        libraryDao.deleteLoan(loanId)
+        libraryDao.updateBook(book.copy(available = book.available + 1))
+        return Result.success("Canceled reservation for ${book.title}")
+    }
+
+
+    fun renewLoan(loanId: String): Result<String> {
+        val loans = libraryDao.getLoans()
+        val idx = loans.indexOfFirst { it.id == loanId }
+        if (idx < 0) return Result.failure(IllegalArgumentException("Loan not found"))
+        val loan = loans[idx]
+
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        if (today > loan.dueDate) return Result.failure(IllegalStateException("Cannot renew overdue loan"))
+        if (loan.renewals >= 1) return Result.failure(IllegalStateException("Renewal limit reached"))
+
+        val updated = loan.copy(dueDate = loan.dueDate.plus(DatePeriod(days = 7)), renewals = loan.renewals + 1)
+        libraryDao.putLoan(updated)
+        return Result.success("Renewed until ${updated.dueDate}")
+    }
+
 }
 
 data class TodayClass(
@@ -265,4 +369,6 @@ data class DaySchedule(
     val dayOfWeek: Int,
     val classes: List<TodayClass>
 )
+
+
 

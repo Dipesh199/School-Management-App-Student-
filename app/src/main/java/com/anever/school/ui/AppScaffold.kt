@@ -26,6 +26,7 @@ import com.anever.school.ui.screens.ClassDetailsScreen
 import com.anever.school.ui.screens.ClassesScreen
 import com.anever.school.ui.screens.ExamsScreen
 import com.anever.school.ui.screens.HomeScreen
+import com.anever.school.ui.screens.LibraryScreen
 import com.anever.school.ui.screens.MoreScreen
 import com.anever.school.ui.screens.NoticeDetailsScreen
 import com.anever.school.ui.screens.NoticesScreen
@@ -99,7 +100,8 @@ fun AppScaffold() {
                 MoreScreen(
                     onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
                     onOpenNotices = { navController.navigate(AppDest.Notices.route) },
-                    onOpenTransport = { navController.navigate(AppDest.Transport.route) }
+                    onOpenTransport = { navController.navigate(AppDest.Transport.route) },
+                    onOpenLibrary = { navController.navigate(AppDest.Library.route) }
                 )
             }
 
@@ -134,6 +136,7 @@ fun AppScaffold() {
             }
 
             composable(AppDest.Transport.route) { TransportScreen() }
+            composable(AppDest.Library.route) { LibraryScreen() }
 
 
         }

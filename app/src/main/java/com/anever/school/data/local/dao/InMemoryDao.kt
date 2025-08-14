@@ -127,6 +127,31 @@ object DummyDb {
         stops = routeStops,
         studentStopId = "st3" // default for current student
     )
+
+    var books: MutableList<Book> = mutableListOf(
+        Book("b1", "Clean Code", "Robert C. Martin", "9780132350884", copies = 5, available = 2),
+        Book("b2", "Kotlin in Action", "Dmitry Jemerov", "9781617293290", copies = 4, available = 1),
+        Book("b3", "Android Programming", "Bill Phillips", "9780135245125", copies = 6, available = 4),
+        Book("b4", "Design Patterns", "Erich Gamma", "9780201633610", copies = 3, available = 0),
+        Book("b5", "The Pragmatic Programmer", "Andrew Hunt", "9780201616224", copies = 5, available = 5),
+        Book("b6", "Introduction to Algorithms", "Cormen", "9780262033848", copies = 2, available = 1),
+    )
+
+    // a couple of loans (one overdue)
+    var loans: MutableList<Loan> = mutableListOf(
+        Loan(
+            id = "l1", bookId = "b1",
+            issueDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.minus(DatePeriod(days = 10)),
+            dueDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.plus(DatePeriod(days = 4)),
+            status = LoanStatus.Current, renewals = 0
+        ),
+        Loan(
+            id = "l2", bookId = "b2",
+            issueDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.minus(DatePeriod(days = 25)),
+            dueDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.minus(DatePeriod(days = 11)),
+            status = LoanStatus.Current, renewals = 1
+        )
+    )
 }
 
 object NoticeBookmarks {
@@ -199,5 +224,26 @@ class InMemoryTransportDao : TransportDao {
     override fun updateStudentStop(stopId: String): Route {
         DummyDb.route = DummyDb.route.copy(studentStopId = stopId)
         return DummyDb.route
+    }
+}
+
+class InMemoryLibraryDao : LibraryDao {
+    override fun getAllBooks(): List<Book> = DummyDb.books.toList()
+    override fun searchBooks(query: String): List<Book> {
+        if (query.isBlank()) return getAllBooks()
+        val q = query.lowercase()
+        return DummyDb.books.filter { it.title.lowercase().contains(q) || it.author.lowercase().contains(q) }
+    }
+    override fun getLoans(): List<Loan> = DummyDb.loans.toList()
+    override fun putLoan(loan: Loan) {
+        val idx = DummyDb.loans.indexOfFirst { it.id == loan.id }
+        if (idx >= 0) DummyDb.loans[idx] = loan else DummyDb.loans.add(loan)
+    }
+    override fun updateBook(updated: Book) {
+        val idx = DummyDb.books.indexOfFirst { it.id == updated.id }
+        if (idx >= 0) DummyDb.books[idx] = updated
+    }
+    override fun deleteLoan(loanId: String) {      // ⬅️ NEW
+        DummyDb.loans.removeAll { it.id == loanId }
     }
 }
