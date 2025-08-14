@@ -8,6 +8,7 @@ import com.anever.school.data.model.EventPass
 import com.anever.school.data.model.Exam
 import com.anever.school.data.model.ExamResult
 import com.anever.school.data.model.Loan
+import com.anever.school.data.model.LostFoundItem
 import com.anever.school.data.model.Notice
 import com.anever.school.data.model.Request
 import com.anever.school.data.model.Route
@@ -90,3 +91,15 @@ interface PassDao {
     fun issuePass(eventId: String): EventPass
     fun cancelPass(passId: String)
 }
+
+interface LostFoundDao {
+    fun getAll(): List<LostFoundItem>
+    fun add(item: LostFoundItem)
+    fun update(item: LostFoundItem)
+}
+
+interface LostFoundAlertsDao {
+    fun getSubscribedCategories(): Set<String>
+    fun toggleCategory(cat: String): Boolean  // returns true if enabled after toggle
+}
+

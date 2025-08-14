@@ -28,6 +28,7 @@ import com.anever.school.ui.screens.EventsScreen
 import com.anever.school.ui.screens.ExamsScreen
 import com.anever.school.ui.screens.HomeScreen
 import com.anever.school.ui.screens.LibraryScreen
+import com.anever.school.ui.screens.LostFoundScreen
 import com.anever.school.ui.screens.MoreScreen
 import com.anever.school.ui.screens.NoticeDetailsScreen
 import com.anever.school.ui.screens.NoticesScreen
@@ -88,7 +89,8 @@ fun AppScaffold() {
                     onOpenNotices = {
                         navController.navigate(AppDest.Notices.route) // placeholder: notices in More
                     },
-                    onOpenEvents = { navController.navigate(AppDest.Events.route) }
+                    onOpenEvents = { navController.navigate(AppDest.Events.route) },
+                    onOpenLostFound = { navController.navigate(AppDest.LostFound.route) }
                 )
             }
             composable(AppDest.Classes.route) { ClassesScreen(onOpenClass = { id ->
@@ -104,7 +106,8 @@ fun AppScaffold() {
                     onOpenNotices    = { navController.navigate(AppDest.Notices.route) },
                     onOpenTransport  = { navController.navigate(AppDest.Transport.route) },
                     onOpenLibrary    = { navController.navigate(AppDest.Library.route) },
-                    onOpenEvents     = { navController.navigate(AppDest.Events.route) }
+                    onOpenEvents     = { navController.navigate(AppDest.Events.route) },
+                    onOpenLostFound  = { navController.navigate(AppDest.LostFound.route) }
                 )
 
             }
@@ -142,6 +145,7 @@ fun AppScaffold() {
             composable(AppDest.Transport.route) { TransportScreen() }
             composable(AppDest.Library.route) { LibraryScreen() }
             composable(AppDest.Events.route) { EventsScreen() }
+            composable(AppDest.LostFound.route) { LostFoundScreen() }
 
 
 

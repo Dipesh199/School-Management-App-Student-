@@ -17,8 +17,76 @@ class Repository(
     private val transportDao: TransportDao = InMemoryTransportDao(),
     private val libraryDao: LibraryDao = InMemoryLibraryDao(),
     private val eventDao: EventDao = InMemoryEventDao(),
-    private val passDao: PassDao = InMemoryPassDao()
+    private val passDao: PassDao = InMemoryPassDao(),
+    private val lostFoundDao: LostFoundDao = InMemoryLostFoundDao(),          // ⬅️ NEW
+    private val lostFoundAlertsDao: LostFoundAlertsDao = InMemoryLostFoundAlertsDao()
 ) {
+
+    // ---------- Lost & Found ----------
+    private val lfCategories = listOf("Electronics", "Books", "Clothing", "ID/Docs", "Accessories", "Others")
+
+    data class LFRow(val item: LostFoundItem, val isMine: Boolean)
+
+    fun listLostFound(
+        type: String? = null, category: String? = null, query: String? = null
+    ): List<LFRow> {
+        val q = query?.trim().orEmpty()
+        return lostFoundDao.getAll()
+            .asSequence()
+            .filter { type == null || it.type.equals(type, true) }
+            .filter { category == null || it.category.equals(category, true) }
+            .filter {
+                q.isBlank() || it.title.contains(q, true) ||
+                        it.description.contains(q, true) || it.location.contains(q, true)
+            }
+            .map { LFRow(it, it.createdBy == "Me") }
+            .toList()
+    }
+
+    fun addLostOrFound(
+        type: String,
+        title: String,
+        category: String,
+        description: String,
+        location: String,
+        reward: Int?,
+        contactName: String = "Me",
+        contactPhone: String = "+49 151 000000"
+    ): LostFoundItem {
+        val item = LostFoundItem(
+            id = "lf" + System.currentTimeMillis(),
+            type = type,
+            title = title,
+            category = category,
+            description = description,
+            dateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+            location = location,
+            contactName = contactName,
+            contactPhone = contactPhone,
+            reward = reward,
+            status = "Open",
+            createdBy = "Me"
+        )
+        lostFoundDao.add(item)
+        return item
+    }
+
+    fun markResolved(id: String): Boolean {
+        val found = lostFoundDao.getAll().firstOrNull { it.id == id } ?: return false
+        if (found.createdBy != "Me") return false
+        lostFoundDao.update(found.copy(status = "Resolved"))
+        return true
+    }
+
+    fun getAlertCategories(): List<Pair<String, Boolean>> {
+        val subs = lostFoundAlertsDao.getSubscribedCategories()
+        return lfCategories.map { it to subs.contains(it) }
+    }
+
+    fun toggleAlertCategory(cat: String): Boolean = lostFoundAlertsDao.toggleCategory(cat)
+
+    fun latestLostFound(limit: Int = 3): List<LostFoundItem> =
+        lostFoundDao.getAll().take(limit)
 
     fun getTodayClasses(today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date): List<TodayClass> {
         val dayOfWeek = today.dayOfWeek.isoDayNumber

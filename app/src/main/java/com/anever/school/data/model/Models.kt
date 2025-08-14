@@ -163,3 +163,18 @@ data class EventPass(
     val status: String, // "Active" | "Cancelled"
     val issuedAt: LocalDateTime
 )
+
+data class LostFoundItem(
+    val id: String,
+    val type: String,          // "Lost" | "Found"
+    val title: String,
+    val category: String,      // "Electronics" | "Books" | "Clothing" | "ID/Docs" | "Accessories" | "Others"
+    val description: String,
+    val dateTime: LocalDateTime,
+    val location: String,
+    val contactName: String,
+    val contactPhone: String,
+    val reward: Int?,          // optional; for Lost mainly
+    val status: String,        // "Open" | "Resolved"
+    val createdBy: String      // "Me" for current student (dummy)
+)

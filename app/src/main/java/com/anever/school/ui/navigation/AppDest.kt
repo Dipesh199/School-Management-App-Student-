@@ -12,9 +12,7 @@ sealed class AppDest(val route: String) {
     data object Transport : AppDest("transport")
     data object Library : AppDest("library")
     data object Events : AppDest("events")
-
-
-
+    data object LostFound : AppDest("lostfound")
 
 
     data object ClassDetails : AppDest("class/{classId}") {

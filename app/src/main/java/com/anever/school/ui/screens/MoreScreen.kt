@@ -17,6 +17,7 @@ fun MoreScreen(
     onOpenTransport: () -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenEvents: () -> Unit,
+    onOpenLostFound: () -> Unit
 ) {
     Column(Modifier.padding(16.dp)) {
         Text("More")
@@ -49,6 +50,11 @@ fun MoreScreen(
             supportingContent = { Text("Fests, seminars — get your pass") },
             modifier = Modifier.clickable { onOpenEvents() }
         )
-
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text("Lost & Found") },
+            supportingContent = { Text("Report items, subscribe alerts") },
+            modifier = Modifier.clickable { onOpenLostFound() }
+        )
     }
 }

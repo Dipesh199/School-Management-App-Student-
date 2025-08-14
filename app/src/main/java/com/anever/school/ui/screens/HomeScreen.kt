@@ -22,7 +22,8 @@ fun HomeScreen(
     onOpenAssignment: (String) -> Unit,
     onOpenExamSchedule: () -> Unit,
     onOpenNotices: () -> Unit,
-    onOpenEvents: () -> Unit
+    onOpenEvents: () -> Unit,
+    onOpenLostFound: () -> Unit
 ) {
     val repo = remember { Repository() }
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -31,6 +32,7 @@ fun HomeScreen(
     val exams = remember { repo.getUpcomingExams(3) }
     val notices = remember { repo.getLatestNotices(3) }
     val events = remember { repo.getUpcomingEvents(3) }
+    val latestLF = remember { repo.latestLostFound(3) }
 
 
     LazyColumn(
@@ -113,9 +115,19 @@ fun HomeScreen(
         } else {
             items(events) { ev ->
                 ElevatedCard {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(ev.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text("${ev.date} • ${ev.start}-${ev.end} • ${ev.venue}", style = MaterialTheme.typography.bodySmall)
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            ev.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "${ev.date} • ${ev.start}-${ev.end} • ${ev.venue}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
@@ -128,6 +140,45 @@ fun HomeScreen(
                 }
             }
         }
+
+        // Lost & Found (latest)
+        item { SectionHeader("Lost & Found") }
+        if (latestLF.isEmpty()) {
+            item { EmptyState("No reports yet") }
+        } else {
+            items(latestLF, key = { it.id }) { lf ->
+                ElevatedCard {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            lf.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AssistChip(onClick = {}, label = { Text(lf.type) })
+                            AssistChip(onClick = {}, label = { Text(lf.category) })
+                            AssistChip(onClick = {}, label = { Text(lf.status) })
+                        }
+                        Text(
+                            "${lf.dateTime.date} • ${lf.location}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onOpenLostFound) { Text("Open Lost & Found") }
+                }
+            }
+        }
+
     }
 }
 

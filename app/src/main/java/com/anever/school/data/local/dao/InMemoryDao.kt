@@ -10,6 +10,55 @@ object DummyDb {
     private val teacherLee   = Teacher("t2", "Ms. Lee")
     private val teacherKhan  = Teacher("t3", "Dr. Khan")
 
+    // ⬇️ NEW: Lost & Found seed data
+    val lostFound: MutableList<LostFoundItem> = mutableListOf(
+        LostFoundItem(
+            id = "lf1",
+            type = "Lost",
+            title = "Blue Backpack",
+            category = "Accessories",
+            description = "Contains math notebook and water bottle.",
+            dateTime = LocalDateTime(2025, 8, 12, 16, 15),
+            location = "Cafeteria",
+            contactName = "Arjun",
+            contactPhone = "+49 151 111111",
+            reward = 10,
+            status = "Open",
+            createdBy = "Me"
+        ),
+        LostFoundItem(
+            id = "lf2",
+            type = "Found",
+            title = "USB Drive 32GB",
+            category = "Electronics",
+            description = "Black SanDisk, found near Lab-2.",
+            dateTime = LocalDateTime(2025, 8, 13, 10, 0),
+            location = "Lab-2",
+            contactName = "Ms. Lee",
+            contactPhone = "+49 151 222222",
+            reward = null,
+            status = "Open",
+            createdBy = "Teacher"
+        ),
+        LostFoundItem(
+            id = "lf3",
+            type = "Lost",
+            title = "Student ID Card",
+            category = "ID/Docs",
+            description = "Name: Priya S., last seen in Library.",
+            dateTime = LocalDateTime(2025, 8, 11, 13, 30),
+            location = "Library",
+            contactName = "Priya",
+            contactPhone = "+49 151 333333",
+            reward = null,
+            status = "Open",
+            createdBy = "Student"
+        )
+    )
+
+    // ⬇️ NEW: category alert subscriptions (mock)
+    val lfAlertCategories: MutableSet<String> = mutableSetOf("ID/Docs") // example default
+
     val subjects = listOf(
         Subject("s1", "Mathematics", "MATH101", teacherSmith, "A-201"),
         Subject("s2", "Physics",     "PHY102",  teacherLee,   "B-105"),
@@ -316,5 +365,31 @@ class InMemoryPassDao : PassDao {
 
     override fun cancelPass(passId: String) {
         DummyDb.passes.removeAll { it.id == passId }
+    }
+}
+
+class InMemoryLostFoundDao : LostFoundDao {
+    override fun getAll(): List<LostFoundItem> = DummyDb.lostFound
+        .sortedByDescending { it.dateTime }
+
+    override fun add(item: LostFoundItem) {
+        DummyDb.lostFound.add(0, item)
+    }
+
+    override fun update(item: LostFoundItem) {
+        val i = DummyDb.lostFound.indexOfFirst { it.id == item.id }
+        if (i >= 0) DummyDb.lostFound[i] = item
+    }
+}
+
+class InMemoryLostFoundAlertsDao : LostFoundAlertsDao {
+    override fun getSubscribedCategories(): Set<String> = DummyDb.lfAlertCategories.toSet()
+    override fun toggleCategory(cat: String): Boolean {
+        return if (DummyDb.lfAlertCategories.remove(cat)) {
+            false
+        } else {
+            DummyDb.lfAlertCategories.add(cat)
+            true
+        }
     }
 }
