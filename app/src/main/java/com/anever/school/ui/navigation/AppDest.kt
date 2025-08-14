@@ -11,6 +11,8 @@ sealed class AppDest(val route: String) {
     data object Notices : AppDest("notices")
     data object Transport : AppDest("transport")
     data object Library : AppDest("library")
+    data object Events : AppDest("events")
+
 
 
 

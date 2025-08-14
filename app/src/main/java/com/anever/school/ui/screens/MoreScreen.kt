@@ -15,7 +15,8 @@ fun MoreScreen(
     onOpenAttendance: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenTransport: () -> Unit,
-    onOpenLibrary: () -> Unit
+    onOpenLibrary: () -> Unit,
+    onOpenEvents: () -> Unit,
 ) {
     Column(Modifier.padding(16.dp)) {
         Text("More")
@@ -42,5 +43,12 @@ fun MoreScreen(
             supportingContent = { Text("Browse books and manage your loans") },
             modifier = Modifier.clickable { onOpenLibrary() }
         )
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text("Event Passes") },
+            supportingContent = { Text("Fests, seminars — get your pass") },
+            modifier = Modifier.clickable { onOpenEvents() }
+        )
+
     }
 }

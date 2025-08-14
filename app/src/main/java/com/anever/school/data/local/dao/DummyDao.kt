@@ -3,6 +3,8 @@ package com.anever.school.data.local.dao
 import com.anever.school.data.model.Assignment
 import com.anever.school.data.model.Attendance
 import com.anever.school.data.model.Book
+import com.anever.school.data.model.Event
+import com.anever.school.data.model.EventPass
 import com.anever.school.data.model.Exam
 import com.anever.school.data.model.ExamResult
 import com.anever.school.data.model.Loan
@@ -76,4 +78,15 @@ interface LibraryDao {
     fun putLoan(loan: Loan)
     fun updateBook(updated: Book)
     fun deleteLoan(loanId: String)
+}
+
+interface EventDao {
+    fun getAllEvents(): List<Event>
+    fun getEventById(id: String): Event?
+}
+
+interface PassDao {
+    fun getPasses(): List<EventPass>
+    fun issuePass(eventId: String): EventPass
+    fun cancelPass(passId: String)
 }

@@ -152,6 +152,46 @@ object DummyDb {
             status = LoanStatus.Current, renewals = 1
         )
     )
+
+    // ⬇️ NEW: Events dataset
+    val events: MutableList<Event> = mutableListOf(
+        Event(
+            id = "ev1",
+            title = "Tech Fest 2025",
+            category = "Fest",
+            date = LocalDate(2025, 9, 14),
+            start = LocalTime(10, 0),
+            end = LocalTime(18, 0),
+            venue = "Main Ground",
+            description = "Project expo, hack mini, and robotics demo.",
+            capacity = 200
+        ),
+        Event(
+            id = "ev2",
+            title = "AI for Everyone",
+            category = "Seminar",
+            date = LocalDate(2025, 9, 22),
+            start = LocalTime(14, 0),
+            end = LocalTime(16, 0),
+            venue = "Auditorium A",
+            description = "Intro to practical AI applications.",
+            capacity = 120
+        ),
+        Event(
+            id = "ev3",
+            title = "Design Thinking Workshop",
+            category = "Workshop",
+            date = LocalDate(2025, 10, 3),
+            start = LocalTime(9, 30),
+            end = LocalTime(12, 30),
+            venue = "Innovation Lab",
+            description = "Hands-on session with templates and teams.",
+            capacity = 60
+        )
+    )
+
+    // ⬇️ NEW: issued passes
+    val passes: MutableList<EventPass> = mutableListOf()
 }
 
 object NoticeBookmarks {
@@ -245,5 +285,36 @@ class InMemoryLibraryDao : LibraryDao {
     }
     override fun deleteLoan(loanId: String) {      // ⬅️ NEW
         DummyDb.loans.removeAll { it.id == loanId }
+    }
+}
+
+// ⬇️ NEW: Event DAO
+class InMemoryEventDao : EventDao {
+    override fun getAllEvents(): List<Event> = DummyDb.events.sortedWith(
+        compareBy<Event> { it.date }.thenBy { it.start }
+    )
+
+    override fun getEventById(id: String): Event? = DummyDb.events.firstOrNull { it.id == id }
+}
+
+// ⬇️ NEW: Pass DAO
+class InMemoryPassDao : PassDao {
+    override fun getPasses(): List<EventPass> = DummyDb.passes.toList()
+
+    override fun issuePass(eventId: String): EventPass {
+        val code = "PASS-" + eventId.uppercase() + "-" + System.currentTimeMillis().toString().takeLast(4)
+        val pass = EventPass(
+            id = "p${System.currentTimeMillis()}",
+            eventId = eventId,
+            code = code,
+            status = "Active",
+            issuedAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
+        DummyDb.passes.add(pass)
+        return pass
+    }
+
+    override fun cancelPass(passId: String) {
+        DummyDb.passes.removeAll { it.id == passId }
     }
 }

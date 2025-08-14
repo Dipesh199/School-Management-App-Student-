@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,7 +21,8 @@ fun HomeScreen(
     onOpenClass: (String) -> Unit,
     onOpenAssignment: (String) -> Unit,
     onOpenExamSchedule: () -> Unit,
-    onOpenNotices: () -> Unit
+    onOpenNotices: () -> Unit,
+    onOpenEvents: () -> Unit
 ) {
     val repo = remember { Repository() }
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -28,6 +30,8 @@ fun HomeScreen(
     val assignments = remember { repo.getToDoAssignments() }
     val exams = remember { repo.getUpcomingExams(3) }
     val notices = remember { repo.getLatestNotices(3) }
+    val events = remember { repo.getUpcomingEvents(3) }
+
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -102,6 +106,28 @@ fun HomeScreen(
             }
         }
         item { Spacer(Modifier.height(24.dp)) }
+        // Upcoming Events
+        item { SectionHeader("Upcoming events") }
+        if (events.isEmpty()) {
+            item { EmptyState("No upcoming events") }
+        } else {
+            items(events) { ev ->
+                ElevatedCard {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(ev.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text("${ev.date} • ${ev.start}-${ev.end} • ${ev.venue}", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onOpenEvents) { Text("View all events") }
+                }
+            }
+        }
     }
 }
 

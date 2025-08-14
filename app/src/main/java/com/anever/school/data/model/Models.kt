@@ -144,3 +144,22 @@ data class Loan(
     val renewals: Int = 0 // number of renews used
 )
 
+data class Event(
+    val id: String,
+    val title: String,
+    val category: String, // "Fest" | "Seminar" | "Workshop"
+    val date: LocalDate,
+    val start: LocalTime,
+    val end: LocalTime,
+    val venue: String,
+    val description: String,
+    val capacity: Int
+)
+
+data class EventPass(
+    val id: String,
+    val eventId: String,
+    val code: String,
+    val status: String, // "Active" | "Cancelled"
+    val issuedAt: LocalDateTime
+)

@@ -15,7 +15,9 @@ class Repository(
     private val attendanceDao: AttendanceDao = InMemoryAttendanceDao(),
     private val requestDao: RequestDao = InMemoryRequestDao(),
     private val transportDao: TransportDao = InMemoryTransportDao(),
-    private val libraryDao: LibraryDao = InMemoryLibraryDao()
+    private val libraryDao: LibraryDao = InMemoryLibraryDao(),
+    private val eventDao: EventDao = InMemoryEventDao(),
+    private val passDao: PassDao = InMemoryPassDao()
 ) {
 
     fun getTodayClasses(today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date): List<TodayClass> {
@@ -350,6 +352,67 @@ class Repository(
         val updated = loan.copy(dueDate = loan.dueDate.plus(DatePeriod(days = 7)), renewals = loan.renewals + 1)
         libraryDao.putLoan(updated)
         return Result.success("Renewed until ${updated.dueDate}")
+    }
+
+    data class EventItem(
+        val event: Event,
+        val seatsLeft: Int,
+        val myPassId: String? // null if not reserved
+    )
+
+    private fun seatsLeftFor(eventId: String): Int {
+        val issued = passDao.getPasses().count { it.eventId == eventId && it.status == "Active" }
+        val cap = eventDao.getEventById(eventId)?.capacity ?: 0
+        return (cap - issued).coerceAtLeast(0)
+    }
+
+    fun browseEvents(category: String? = null, query: String? = null): List<EventItem> {
+        val all = eventDao.getAllEvents()
+            .filter { category == null || it.category.equals(category, true) }
+            .filter { query.isNullOrBlank() ||
+                    it.title.contains(query!!, true) || it.description.contains(query!!, true) }
+
+        val myPasses = passDao.getPasses().associateBy { it.eventId }
+        return all.map { e ->
+            EventItem(
+                event = e,
+                seatsLeft = seatsLeftFor(e.id),
+                myPassId = myPasses[e.id]?.id
+            )
+        }
+    }
+
+    fun getUpcomingEvents(limit: Int = 3): List<Event> {
+        val nowD = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        return eventDao.getAllEvents().filter { it.date >= nowD }.sortedWith(
+            compareBy<Event> { it.date }.thenBy { it.start }
+        ).take(limit)
+    }
+
+    data class PassRow(val pass: EventPass, val event: Event)
+
+    fun getMyPasses(): List<PassRow> {
+        val events = eventDao.getAllEvents().associateBy { it.id }
+        return passDao.getPasses()
+            .filter { it.status == "Active" }
+            .mapNotNull { p -> events[p.eventId]?.let { PassRow(p, it) } }
+            .sortedWith(compareBy({ it.event.date }, { it.event.start }))
+    }
+
+    fun rsvp(eventId: String): Result<String> {
+        val seats = seatsLeftFor(eventId)
+        if (seats <= 0) return Result.failure(IllegalStateException("No seats left"))
+        if (passDao.getPasses().any { it.eventId == eventId && it.status == "Active" })
+            return Result.failure(IllegalStateException("Pass already issued"))
+        passDao.issuePass(eventId)
+        return Result.success("Pass issued")
+    }
+
+    fun cancelPass(passId: String): Result<String> {
+        val pass = passDao.getPasses().firstOrNull { it.id == passId }
+            ?: return Result.failure(IllegalArgumentException("Pass not found"))
+        passDao.cancelPass(passId)
+        return Result.success("Reservation cancelled for ${pass.code}")
     }
 
 }

@@ -24,6 +24,7 @@ import com.anever.school.ui.screens.AssignmentsScreen
 import com.anever.school.ui.screens.AttendanceScreen
 import com.anever.school.ui.screens.ClassDetailsScreen
 import com.anever.school.ui.screens.ClassesScreen
+import com.anever.school.ui.screens.EventsScreen
 import com.anever.school.ui.screens.ExamsScreen
 import com.anever.school.ui.screens.HomeScreen
 import com.anever.school.ui.screens.LibraryScreen
@@ -86,7 +87,8 @@ fun AppScaffold() {
                     },
                     onOpenNotices = {
                         navController.navigate(AppDest.Notices.route) // placeholder: notices in More
-                    }
+                    },
+                    onOpenEvents = { navController.navigate(AppDest.Events.route) }
                 )
             }
             composable(AppDest.Classes.route) { ClassesScreen(onOpenClass = { id ->
@@ -99,10 +101,12 @@ fun AppScaffold() {
             composable(AppDest.More.route) {
                 MoreScreen(
                     onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
-                    onOpenNotices = { navController.navigate(AppDest.Notices.route) },
-                    onOpenTransport = { navController.navigate(AppDest.Transport.route) },
-                    onOpenLibrary = { navController.navigate(AppDest.Library.route) }
+                    onOpenNotices    = { navController.navigate(AppDest.Notices.route) },
+                    onOpenTransport  = { navController.navigate(AppDest.Transport.route) },
+                    onOpenLibrary    = { navController.navigate(AppDest.Library.route) },
+                    onOpenEvents     = { navController.navigate(AppDest.Events.route) }
                 )
+
             }
 
             composable(
@@ -137,6 +141,8 @@ fun AppScaffold() {
 
             composable(AppDest.Transport.route) { TransportScreen() }
             composable(AppDest.Library.route) { LibraryScreen() }
+            composable(AppDest.Events.route) { EventsScreen() }
+
 
 
         }
