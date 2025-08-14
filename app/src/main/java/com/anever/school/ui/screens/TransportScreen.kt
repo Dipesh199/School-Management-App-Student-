@@ -74,33 +74,6 @@ fun TransportScreen() {
                 }
             }
 
-            // Map snapshot (mock)
-//            item {
-//                ElevatedCard {
-//                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-//                        Text("Route Map (snapshot)", fontWeight = FontWeight.SemiBold)
-//                        val outlineColor = MaterialTheme.colorScheme.outline
-//                        val primaryColor = MaterialTheme.colorScheme.primary
-//                        Canvas(Modifier.fillMaxWidth().height(160.dp)) {
-//                            // simple schematic: polyline with stops as dots
-//                            val w = size.width
-//                            val h = size.height
-//                            val gap = w / (route.stops.size - 1).coerceAtLeast(1)
-//                            var prev = Offset(0f, h * 0.6f)
-//                            route.stops.forEachIndexed { i, _ ->
-//                                val x = gap * i
-//                                val y = h * 0.6f
-//                                val curr = Offset(x, y)
-//                                if (i > 0) drawLine(color = outlineColor, start = prev, end = curr, strokeWidth = 6f)
-//                                drawCircle(color = primaryColor, radius = 8f, center = curr)
-//                                prev = curr
-//                            }
-//                        }
-//                        Text("Schematic only (no live GPS).", style = MaterialTheme.typography.bodySmall)
-//                    }
-//                }
-//            }
-
             // Choose stop
             item {
                 ElevatedCard {
