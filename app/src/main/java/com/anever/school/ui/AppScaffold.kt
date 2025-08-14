@@ -39,7 +39,7 @@ fun AppScaffold() {
     val tabs = listOf(
         BottomTab(AppDest.Home.route, "Home", Icons.Default.Home),
         BottomTab(AppDest.Classes.route, "Classes", Icons.Default.School),
-        BottomTab(AppDest.Assignments.route, "Assignments", Icons.Default.Assignment),
+        BottomTab(AppDest.Assignments.route, "Lessons", Icons.Default.Assignment),
         BottomTab(AppDest.Exams.route, "Exams", Icons.Default.Event),
         BottomTab(AppDest.More.route, "More", Icons.Default.Menu),
     )
