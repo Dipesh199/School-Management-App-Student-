@@ -108,6 +108,25 @@ object DummyDb {
 
     // ⬇️ NEW: requests (mutable in-memory)
     val requests: MutableList<Request> = mutableListOf()
+
+    private val routeStops = listOf(
+        BusStop("st1", "Rathausplatz",      LocalTime(7, 30), LocalTime(16, 50)),
+        BusStop("st2", "Bahnhof Ost",       LocalTime(7, 40), LocalTime(16, 40)),
+        BusStop("st3", "Lindenstraße",      LocalTime(7, 50), LocalTime(16, 30)),
+        BusStop("st4", "Campus Süd Tor",    LocalTime(8,  0), LocalTime(16, 20)),
+        BusStop("st5", "Technopark",        LocalTime(8, 10), LocalTime(16, 10)),
+        BusStop("st6", "School Main Gate",  LocalTime(8, 20), LocalTime(16,  0)),
+    )
+
+    var route: Route = Route(
+        id = "r1",
+        name = "East Line",
+        busNo = "B12",
+        driverName = "R. Meier",
+        driverPhone = "+49 171 2345678",
+        stops = routeStops,
+        studentStopId = "st3" // default for current student
+    )
 }
 
 object NoticeBookmarks {
@@ -173,4 +192,12 @@ class InMemoryRequestDao : RequestDao {
         DummyDb.requests.add(request)
     }
     override fun getAllRequests(): List<Request> = DummyDb.requests
+}
+
+class InMemoryTransportDao : TransportDao {
+    override fun getRoute(): Route = DummyDb.route
+    override fun updateStudentStop(stopId: String): Route {
+        DummyDb.route = DummyDb.route.copy(studentStopId = stopId)
+        return DummyDb.route
+    }
 }

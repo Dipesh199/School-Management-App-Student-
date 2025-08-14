@@ -13,7 +13,8 @@ class Repository(
     private val noticeDao: NoticeDao = InMemoryNoticeDao(),
     private val resultDao: ResultDao = InMemoryResultDao(),
     private val attendanceDao: AttendanceDao = InMemoryAttendanceDao(),
-    private val requestDao: RequestDao = InMemoryRequestDao()
+    private val requestDao: RequestDao = InMemoryRequestDao(),
+    private val transportDao: TransportDao = InMemoryTransportDao()
 ) {
 
     fun getTodayClasses(today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date): List<TodayClass> {
@@ -190,6 +191,61 @@ class Repository(
     fun toggleNoticeBookmark(id: String): Boolean {
         val set = NoticeBookmarks.ids
         return if (set.remove(id)) false else { set.add(id); true }
+    }
+
+    // ---------- Transport ----------
+    fun getTransportRoute(): Route = transportDao.getRoute()
+
+    data class TransportEta(val status: String, val info: String)
+
+    fun calcEtaFor(stop: BusStop, now: LocalDateTime): TransportEta {
+        val tz = TimeZone.currentSystemDefault()
+        val today = now.date
+        val pickupInstant = LocalDateTime(today, stop.pickup).toInstant(tz)
+        val dropInstant = LocalDateTime(today, stop.drop).toInstant(tz)
+        val nowInstant = now.toInstant(tz)
+
+        return when {
+            nowInstant < pickupInstant -> {
+                TransportEta("Pickup", "in " + humanize(pickupInstant - nowInstant) + " at ${stop.pickup}")
+            }
+            nowInstant in pickupInstant..dropInstant -> {
+                TransportEta("En route", "drop at ${stop.drop} (in " + humanize(dropInstant - nowInstant) + ")")
+            }
+            else -> {
+                // Next day pickup
+                TransportEta("Completed", "next pickup tomorrow at ${stop.pickup}")
+            }
+        }
+    }
+
+    private fun humanize(d: kotlin.time.Duration): String {
+        val s = d.inWholeSeconds
+        val h = s / 3600
+        val m = (s % 3600) / 60
+        val sec = s % 60
+        return buildString {
+            if (h > 0) append("${h}h ")
+            if (m > 0) append("${m}m ")
+            append("${sec}s")
+        }
+    }
+
+    fun requestChangeStop(toStopId: String): Request {
+        val route = transportDao.updateStudentStop(toStopId) // reflect immediately in UI
+        val selected = route.stops.firstOrNull { it.id == toStopId }
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val req = Request(
+            id = "req${System.currentTimeMillis()}",
+            type = "ChangeStop",
+            reason = "Change stop to ${selected?.name ?: toStopId}",
+            fromDate = today,                 // reuse fields for audit
+            toDate = today,
+            status = "Pending",
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
+        requestDao.addRequest(req)
+        return req
     }
 
 }

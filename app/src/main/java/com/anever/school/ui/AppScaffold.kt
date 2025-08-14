@@ -29,6 +29,7 @@ import com.anever.school.ui.screens.HomeScreen
 import com.anever.school.ui.screens.MoreScreen
 import com.anever.school.ui.screens.NoticeDetailsScreen
 import com.anever.school.ui.screens.NoticesScreen
+import com.anever.school.ui.screens.TransportScreen
 
 @Composable
 fun AppScaffold() {
@@ -97,7 +98,8 @@ fun AppScaffold() {
             composable(AppDest.More.route) {
                 MoreScreen(
                     onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
-                    onOpenNotices = { navController.navigate(AppDest.Notices.route) }
+                    onOpenNotices = { navController.navigate(AppDest.Notices.route) },
+                    onOpenTransport = { navController.navigate(AppDest.Transport.route) }
                 )
             }
 
@@ -130,6 +132,9 @@ fun AppScaffold() {
                 val id = it.arguments?.getString("noticeId")!!
                 NoticeDetailsScreen(id)
             }
+
+            composable(AppDest.Transport.route) { TransportScreen() }
+
 
         }
     }

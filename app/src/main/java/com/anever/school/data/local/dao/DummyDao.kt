@@ -6,6 +6,7 @@ import com.anever.school.data.model.Exam
 import com.anever.school.data.model.ExamResult
 import com.anever.school.data.model.Notice
 import com.anever.school.data.model.Request
+import com.anever.school.data.model.Route
 import com.anever.school.data.model.Subject
 import com.anever.school.data.model.TimetableEntry
 import kotlinx.datetime.LocalDate
@@ -59,4 +60,9 @@ interface AttendanceDao {
 interface RequestDao {
     fun addRequest(request: Request)
     fun getAllRequests(): List<Request>
+}
+
+interface TransportDao {
+    fun getRoute(): Route
+    fun updateStudentStop(stopId: String): Route
 }

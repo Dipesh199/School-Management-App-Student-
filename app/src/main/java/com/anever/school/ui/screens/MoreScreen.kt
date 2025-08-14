@@ -13,7 +13,8 @@ import androidx.compose.material3.ListItem
 @Composable
 fun MoreScreen(
     onOpenAttendance: () -> Unit,
-    onOpenNotices: () -> Unit
+    onOpenNotices: () -> Unit,
+    onOpenTransport: () -> Unit
 ) {
     Column(Modifier.padding(16.dp)) {
         Text("More")
@@ -27,6 +28,12 @@ fun MoreScreen(
             headlineContent = { Text("Notices / Announcements") },
             supportingContent = { Text("School & class notices, exams, events") },
             modifier = Modifier.clickable { onOpenNotices() }
+        )
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text("Transport") },
+            supportingContent = { Text("Route, stop, driver and ETA") },
+            modifier = Modifier.clickable { onOpenTransport() }
         )
     }
 }

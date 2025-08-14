@@ -106,3 +106,20 @@ data class Request(
     val createdAt: LocalDateTime
 )
 
+data class BusStop(
+    val id: String,
+    val name: String,
+    val pickup: LocalTime,
+    val drop: LocalTime
+)
+
+data class Route(
+    val id: String,
+    val name: String,
+    val busNo: String,
+    val driverName: String,
+    val driverPhone: String,
+    val stops: List<BusStop>,
+    val studentStopId: String
+)
+
