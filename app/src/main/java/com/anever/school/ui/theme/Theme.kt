@@ -3,6 +3,7 @@ package com.anever.school.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -10,49 +11,74 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.*
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val LightColors = lightColorScheme(
+    primary = BluePrimary,
+    onPrimary = ColorSchemeDefaults.onPrimary,
+    secondary = AmberSecondary,
+    onSecondary = ColorSchemeDefaults.onSecondary,
+    tertiary = EmeraldTertiary,
+    onTertiary = ColorSchemeDefaults.onTertiary,
+    background = SurfaceSoft,
+    surface = SurfaceSoft,
+    error = ColorSchemeDefaults.error
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val DarkColors = darkColorScheme(
+    primary = BluePrimary,
+    secondary = AmberSecondary,
+    tertiary = EmeraldTertiary,
+    background = SurfaceSoftDark,
+    surface = SurfaceSoftDark
+)
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private object ColorSchemeDefaults {
+    // Let Material choose reasonable contrasts; we can tweak later if needed.
+    val onPrimary = androidx.compose.ui.graphics.Color.White
+    val onSecondary = androidx.compose.ui.graphics.Color.Black
+    val onTertiary = androidx.compose.ui.graphics.Color.Black
+    val error = androidx.compose.ui.graphics.Color(0xFFB3261E)
+}
+
+private val SchoolShapes = Shapes(
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp)
+)
+
+private val SchoolTypography = Typography(
+    // Keep Material defaults, bump title weights for punchier headers
+    titleLarge = Typography().titleLarge.copy(fontFamily = FontFamily.SansSerif),
+    titleMedium = Typography().titleMedium.copy(fontFamily = FontFamily.SansSerif),
+    headlineSmall = Typography().headlineSmall.copy(fontFamily = FontFamily.SansSerif),
+    bodyMedium = Typography().bodyMedium.copy(fontFamily = FontFamily.SansSerif),
+    labelMedium = Typography().labelMedium.copy(fontFamily = FontFamily.SansSerif)
 )
 
 @Composable
 fun SchoolTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val context = LocalContext.current
+    val colors = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = colors,
+        typography = SchoolTypography,
+        shapes = SchoolShapes,
         content = content
     )
 }
