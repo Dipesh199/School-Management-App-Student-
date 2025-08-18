@@ -6,9 +6,9 @@ import kotlinx.datetime.*
 import kotlin.random.Random
 
 object DummyDb {
-    private val teacherSmith = Teacher("t1", "Mr. Smith")
-    private val teacherLee   = Teacher("t2", "Ms. Lee")
-    private val teacherKhan  = Teacher("t3", "Dr. Khan")
+    private val teacherSmith = Teacher("t1", "Mr. Arjun Mehta")
+    private val teacherLee   = Teacher("t2", "Ms. Priya Sharma")
+    private val teacherKhan  = Teacher("t3", "Dr. Raghav Iyer")
 
     // ⬇️ NEW: Lost & Found seed data
     val lostFound: MutableList<LostFoundItem> = mutableListOf(
@@ -21,7 +21,7 @@ object DummyDb {
             dateTime = LocalDateTime(2025, 8, 12, 16, 15),
             location = "Cafeteria",
             contactName = "Arjun",
-            contactPhone = "+49 151 111111",
+            contactPhone = "+91 95476 24658",
             reward = 10,
             status = "Open",
             createdBy = "Me"
@@ -35,7 +35,7 @@ object DummyDb {
             dateTime = LocalDateTime(2025, 8, 13, 10, 0),
             location = "Lab-2",
             contactName = "Ms. Lee",
-            contactPhone = "+49 151 222222",
+            contactPhone = "+91 82564 65842",
             reward = null,
             status = "Open",
             createdBy = "Teacher"
@@ -49,7 +49,7 @@ object DummyDb {
             dateTime = LocalDateTime(2025, 8, 11, 13, 30),
             location = "Library",
             contactName = "Priya",
-            contactPhone = "+49 151 333333",
+            contactPhone = "+91 84584 95695",
             reward = null,
             status = "Open",
             createdBy = "Student"
@@ -159,20 +159,20 @@ object DummyDb {
     val requests: MutableList<Request> = mutableListOf()
 
     private val routeStops = listOf(
-        BusStop("st1", "Rathausplatz",      LocalTime(7, 30), LocalTime(16, 50)),
-        BusStop("st2", "Bahnhof Ost",       LocalTime(7, 40), LocalTime(16, 40)),
-        BusStop("st3", "Lindenstraße",      LocalTime(7, 50), LocalTime(16, 30)),
-        BusStop("st4", "Campus Süd Tor",    LocalTime(8,  0), LocalTime(16, 20)),
-        BusStop("st5", "Technopark",        LocalTime(8, 10), LocalTime(16, 10)),
-        BusStop("st6", "School Main Gate",  LocalTime(8, 20), LocalTime(16,  0)),
+        BusStop("st1", "Anand New Bus Stand",   LocalTime(7, 30), LocalTime(16, 50)),
+        BusStop("st2", "Anand Railway Station", LocalTime(7, 40), LocalTime(16, 40)),
+        BusStop("st3", "Amul Dairy Circle",     LocalTime(7, 50), LocalTime(16, 30)),
+        BusStop("st4", "SP University Gate",    LocalTime(8, 0),  LocalTime(16, 20)),
+        BusStop("st5", "GIDC Phase-2",          LocalTime(8, 10), LocalTime(16, 10)),
+        BusStop("st6", "Vallabh Vidyanagar",    LocalTime(8, 20), LocalTime(16, 0)),
     )
 
     var route: Route = Route(
         id = "r1",
         name = "East Line",
         busNo = "B12",
-        driverName = "R. Meier",
-        driverPhone = "+49 171 2345678",
+        driverName = "R. Radadiya",
+        driverPhone = "+91  91712 34567",
         stops = routeStops,
         studentStopId = "st3" // default for current student
     )

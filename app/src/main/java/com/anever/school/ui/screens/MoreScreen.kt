@@ -20,7 +20,6 @@ fun MoreScreen(
     onOpenLostFound: () -> Unit
 ) {
     Column(Modifier.padding(16.dp)) {
-        Text("More")
         ListItem(
             headlineContent = { Text("My Attendance") },
             supportingContent = { Text("Calendar, subject stats, leave request") },

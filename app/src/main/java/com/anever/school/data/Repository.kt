@@ -51,7 +51,7 @@ class Repository(
         location: String,
         reward: Int?,
         contactName: String = "Me",
-        contactPhone: String = "+49 151 000000"
+        contactPhone: String = "+91 9151 0000"
     ): LostFoundItem {
         val item = LostFoundItem(
             id = "lf" + System.currentTimeMillis(),
