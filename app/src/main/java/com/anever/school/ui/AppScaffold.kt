@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -44,7 +45,6 @@ fun AppScaffold() {
         BottomTab(AppDest.Classes.route, "Classes", Icons.Default.School),
         BottomTab(AppDest.Assignments.route, "Lessons", Icons.Default.Assignment),
         BottomTab(AppDest.Exams.route, "Exams", Icons.Default.Event),
-        BottomTab(AppDest.More.route, "More", Icons.Default.Menu),
     )
     SchoolTheme {
         Scaffold(
@@ -78,24 +78,13 @@ fun AppScaffold() {
             ) {
                 composable(AppDest.Home.route) {
                     HomeScreen(
-                        onOpenClass = { classId ->
-                            navController.navigate(AppDest.ClassDetails.routeWithArg(classId))
-                        },
-                        onOpenAssignment = { assignmentId ->
-                            navController.navigate(
-                                AppDest.AssignmentDetails.routeWithArg(
-                                    assignmentId
-                                )
-                            )
-                        },
-                        onOpenExamSchedule = {
-                            navController.navigate(AppDest.Exams.route)
-                        },
-                        onOpenNotices = {
-                            navController.navigate(AppDest.Notices.route) // placeholder: notices in More
-                        },
+                        onOpenExamSchedule = { navController.navigate(AppDest.Exams.route) },
+                        onOpenNotices = { navController.navigate(AppDest.Notices.route) },
                         onOpenEvents = { navController.navigate(AppDest.Events.route) },
-                        onOpenLostFound = { navController.navigate(AppDest.LostFound.route) }
+                        onOpenLostFound = { navController.navigate(AppDest.LostFound.route) },
+                        onOpenLibrary = { navController.navigate(AppDest.Library.route) },
+                        onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
+                        onOpenTransport = { navController.navigate(AppDest.Transport.route) },
                     )
                 }
                 composable(AppDest.Classes.route) {
@@ -109,17 +98,17 @@ fun AppScaffold() {
                     })
                 }
                 composable(AppDest.Exams.route) { ExamsScreen() }
-                composable(AppDest.More.route) {
-                    MoreScreen(
-                        onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
-                        onOpenNotices = { navController.navigate(AppDest.Notices.route) },
-                        onOpenTransport = { navController.navigate(AppDest.Transport.route) },
-                        onOpenLibrary = { navController.navigate(AppDest.Library.route) },
-                        onOpenEvents = { navController.navigate(AppDest.Events.route) },
-                        onOpenLostFound = { navController.navigate(AppDest.LostFound.route) }
-                    )
-
-                }
+//                composable(AppDest.More.route) {
+//                    MoreScreen(
+//                        onOpenAttendance = { navController.navigate(AppDest.Attendance.route) },
+//                        onOpenNotices = { navController.navigate(AppDest.Notices.route) },
+//                        onOpenTransport = { navController.navigate(AppDest.Transport.route) },
+//                        onOpenLibrary = { navController.navigate(AppDest.Library.route) },
+//                        onOpenEvents = { navController.navigate(AppDest.Events.route) },
+//                        onOpenLostFound = { navController.navigate(AppDest.LostFound.route) }
+//                    )
+//
+//                }
 
                 composable(
                     route = AppDest.ClassDetails.routePattern,
@@ -162,4 +151,4 @@ fun AppScaffold() {
     }
 }
 
-data class BottomTab(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+data class BottomTab(val route: String, val label: String, val icon: ImageVector)

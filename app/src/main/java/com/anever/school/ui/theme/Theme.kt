@@ -17,14 +17,14 @@ import androidx.compose.ui.unit.dp
 
 private val LightColors = lightColorScheme(
     primary = BluePrimary,
-    onPrimary = ColorSchemeDefaults.onPrimary,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
     secondary = AmberSecondary,
-    onSecondary = ColorSchemeDefaults.onSecondary,
+    onSecondary = androidx.compose.ui.graphics.Color.Black,
     tertiary = EmeraldTertiary,
-    onTertiary = ColorSchemeDefaults.onTertiary,
+    onTertiary = androidx.compose.ui.graphics.Color.Black,
     background = SurfaceSoft,
     surface = SurfaceSoft,
-    error = ColorSchemeDefaults.error
+    error = androidx.compose.ui.graphics.Color(0xFFB3261E)
 )
 
 private val DarkColors = darkColorScheme(
@@ -35,14 +35,6 @@ private val DarkColors = darkColorScheme(
     surface = SurfaceSoftDark
 )
 
-private object ColorSchemeDefaults {
-    // Let Material choose reasonable contrasts; we can tweak later if needed.
-    val onPrimary = androidx.compose.ui.graphics.Color.White
-    val onSecondary = androidx.compose.ui.graphics.Color.Black
-    val onTertiary = androidx.compose.ui.graphics.Color.Black
-    val error = androidx.compose.ui.graphics.Color(0xFFB3261E)
-}
-
 private val SchoolShapes = Shapes(
     extraSmall = RoundedCornerShape(10.dp),
     small = RoundedCornerShape(14.dp),
@@ -52,7 +44,7 @@ private val SchoolShapes = Shapes(
 )
 
 private val SchoolTypography = Typography(
-    // Keep Material defaults, bump title weights for punchier headers
+    // Lean punchier headers; keep system sans for simplicity
     titleLarge = Typography().titleLarge.copy(fontFamily = FontFamily.SansSerif),
     titleMedium = Typography().titleMedium.copy(fontFamily = FontFamily.SansSerif),
     headlineSmall = Typography().headlineSmall.copy(fontFamily = FontFamily.SansSerif),

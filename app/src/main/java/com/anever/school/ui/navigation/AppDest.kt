@@ -6,7 +6,7 @@ sealed class AppDest(val route: String) {
     data object Classes : AppDest("classes")
     data object Assignments : AppDest("assignments")
     data object Exams : AppDest("exams")
-    data object More : AppDest("more")
+//    data object More : AppDest("more")
     data object Attendance : AppDest("attendance")
     data object Notices : AppDest("notices")
     data object Transport : AppDest("transport")
