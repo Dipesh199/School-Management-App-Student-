@@ -11,54 +11,60 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anever.school.data.Repository
-import com.anever.school.data.model.Assignment
 import com.anever.school.data.model.AssignmentStatus
 import com.anever.school.data.model.Subject
-import com.anever.school.ui.design.GradientCard
+import com.anever.school.ui.design.*
 
 @Composable
 fun AssignmentsScreen(onOpenAssignment: (String) -> Unit) {
     val repo = remember { Repository() }
-
-    // Data
     val assignments = remember { repo.getAllAssignments() }
     val subjects = remember { repo.getAllSubjects() }
     val subjectMap = remember(subjects) { subjects.associateBy { it.id } }
 
-    // Filters
-    var statusFilter by remember { mutableStateOf(AssignFilter.TODO) }
-    var selectedSubjectId by remember { mutableStateOf<String?>(null) } // null => All subjects
+    var filter by remember { mutableStateOf(AssignFilter.TODO) }
+    var subjectId by remember { mutableStateOf<String?>(null) }
 
-    val filtered = remember(assignments, statusFilter, selectedSubjectId) {
-        assignments.asSequence()
-            .filter { a ->
-                when (statusFilter) {
-                    AssignFilter.ALL -> true
-                    AssignFilter.TODO -> a.status == AssignmentStatus.todo
-                    AssignFilter.SUBMITTED -> a.status == AssignmentStatus.submitted
-                    AssignFilter.GRADED -> a.status == AssignmentStatus.graded
-                }
-            }
-            .filter { a -> selectedSubjectId == null || a.subjectId == selectedSubjectId }
-            .sortedBy { it.dueAt }
-            .map { a -> AssignmentItem(a, subjectMap[a.subjectId]) }
-            .toList()
+    val filtered = remember(assignments, filter, subjectId) {
+        assignments.filter { a ->
+            (subjectId == null || a.subjectId == subjectId) &&
+                    when (filter) {
+                        AssignFilter.ALL -> true
+                        AssignFilter.TODO -> a.status == AssignmentStatus.todo
+                        AssignFilter.SUBMITTED -> a.status == AssignmentStatus.submitted
+                        AssignFilter.GRADED -> a.status == AssignmentStatus.graded
+                    }
+        }.sortedBy { it.dueAt }
     }
 
     Column(Modifier.fillMaxSize()) {
-        FilterRow(current = statusFilter, onSelect = { statusFilter = it })
-        SubjectChipsRow(subjects = subjects, selectedId = selectedSubjectId, onSelect = { selectedSubjectId = it })
+        TopBarLarge(title = "Assignments")
+        FiltersRow(filter, onChange = { filter = it })
+        SubjectsRow(subjects, subjectId) { subjectId = it }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (filtered.isEmpty()) {
-                item { Surface(tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()) { Box(Modifier.padding(16.dp)) { Text("No assignments") } } }
-            } else {
-                items(filtered, key = { it.assignment.id }) { item ->
-                    AssignmentCard(item = item) { onOpenAssignment(item.assignment.id) }
+            items(filtered, key = { it.id }) { a ->
+                val subj = subjectMap[a.subjectId]
+                EduCard(seed = subj?.name ?: a.title, modifier = Modifier.clickable { onOpenAssignment(a.id) }) {
+                    Text(a.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(2.dp))
+                    Text(subj?.name ?: "Subject: ${a.subjectId}", style = MaterialTheme.typography.bodySmall)
+                    Text("Due: ${a.dueAt.date} ${a.dueAt.time}", style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    val color = when (a.status) {
+                        AssignmentStatus.todo -> MaterialTheme.colorScheme.primary
+                        AssignmentStatus.submitted -> MaterialTheme.colorScheme.tertiary
+                        AssignmentStatus.graded -> MaterialTheme.colorScheme.secondary
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatusChip(a.status.name.uppercase(), color)
+                        if (a.status == AssignmentStatus.graded && a.grade != null) {
+                            StatusChip("Grade: ${a.grade}", MaterialTheme.colorScheme.secondary)
+                        }
+                    }
                 }
             }
         }
@@ -68,53 +74,19 @@ fun AssignmentsScreen(onOpenAssignment: (String) -> Unit) {
 private enum class AssignFilter(val label: String) { TODO("To-Do"), SUBMITTED("Submitted"), GRADED("Graded"), ALL("All") }
 
 @Composable
-private fun FilterRow(current: AssignFilter, onSelect: (AssignFilter) -> Unit) {
-    val filters = listOf(AssignFilter.TODO, AssignFilter.SUBMITTED, AssignFilter.GRADED, AssignFilter.ALL)
-    LazyRow(
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(filters) { f ->
-            FilterChip(selected = current == f, onClick = { onSelect(f) }, label = { Text(f.label) })
-        }
+private fun FiltersRow(current: AssignFilter, onChange: (AssignFilter) -> Unit) {
+    val items = listOf(AssignFilter.TODO, AssignFilter.SUBMITTED, AssignFilter.GRADED, AssignFilter.ALL)
+    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(items) { it -> FilterChip(selected = current == it, onClick = { onChange(it) }, label = { Text(it.label) }) }
     }
 }
 
 @Composable
-private fun SubjectChipsRow(subjects: List<Subject>, selectedId: String?, onSelect: (String?) -> Unit) {
-    LazyRow(
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item { FilterChip(selected = selectedId == null, onClick = { onSelect(null) }, label = { Text("All Subjects") }) }
+private fun SubjectsRow(subjects: List<Subject>, selected: String?, onSelect: (String?) -> Unit) {
+    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        item { FilterChip(selected = selected == null, onClick = { onSelect(null) }, label = { Text("All Subjects") }) }
         items(subjects, key = { it.id }) { s ->
-            FilterChip(selected = selectedId == s.id, onClick = { onSelect(s.id) }, label = { Text(s.name) })
-        }
-    }
-}
-
-private data class AssignmentItem(val assignment: Assignment, val subject: Subject?)
-
-@Composable
-private fun AssignmentCard(item: AssignmentItem, onClick: () -> Unit) {
-    val a = item.assignment
-    val subj = item.subject
-
-    GradientCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() } // FIX: actually invoke onClick
-    ) {
-        Column(Modifier.padding(0.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(a.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(subj?.name ?: "Subject: ${'$'}{a.subjectId}", style = MaterialTheme.typography.bodyMedium)
-            Text("Due: ${'$'}{a.dueAt.date} ${'$'}{a.dueAt.time}", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = onClick, label = { Text(a.status.name.uppercase()) })
-                if (a.status == AssignmentStatus.graded && a.grade != null) {
-                    AssistChip(onClick = {}, label = { Text("Grade: ${'$'}{a.grade}") })
-                }
-            }
+            FilterChip(selected = selected == s.id, onClick = { onSelect(s.id) }, label = { Text(s.name) })
         }
     }
 }

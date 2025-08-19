@@ -1,5 +1,6 @@
 package com.anever.school.ui.screens
 
+import android.service.quicksettings.Tile
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -24,7 +25,6 @@ fun MoreScreen(
     onOpenLostFound: () -> Unit
 ) {
     Column(Modifier.fillMaxSize()) {
-        TopBarLarge(title = "More")
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 180.dp),
             contentPadding = PaddingValues(16.dp),

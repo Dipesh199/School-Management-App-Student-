@@ -8,19 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SectionHeader(title: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+fun SectionHeaders(title: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,13 +35,12 @@ fun SectionHeader(title: String, actionLabel: String? = null, onAction: (() -> U
     }
 }
 
+/** Solid color card with thin top bar. */
 @Composable
-fun GradientCard(
+fun GradientCard( // name kept for compatibility; now solid color
     modifier: Modifier = Modifier,
     topBarHeight: Int = 6,
-    gradient: Brush = Brush.horizontalGradient(
-        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
-    ),
+    topBarColor: Color = MaterialTheme.colorScheme.primary,
     content: @Composable ColumnScope.() -> Unit
 ) {
     ElevatedCard(modifier) {
@@ -58,7 +49,7 @@ fun GradientCard(
                 Modifier
                     .fillMaxWidth()
                     .height(topBarHeight.dp)
-                    .background(gradient)
+                    .background(topBarColor)
             )
             Column(Modifier.padding(16.dp), content = content)
         }
@@ -77,30 +68,24 @@ fun StatPill(text: String, color: Color = MaterialTheme.colorScheme.primary) {
     }
 }
 
-/** Big friendly header with gradient background; drop it at top of screens. */
+/** Solid hero header (no gradients). */
 @Composable
 fun HeroHeader(
     title: String,
     subtitle: String? = null,
-    gradient: Brush = Brush.linearGradient(
-        listOf(
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.tertiary
-        )
-    )
+    bgColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Surface(tonalElevation = 0.dp) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(gradient)
+                .background(bgColor)
                 .padding(horizontal = 16.dp, vertical = 18.dp)
         ) {
             Text(
                 title,
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = Color.White,
                 fontWeight = FontWeight.ExtraBold
             )
             if (subtitle != null) {
@@ -108,49 +93,49 @@ fun HeroHeader(
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                    color = Color.White.copy(alpha = 0.9f)
                 )
             }
         }
     }
 }
 
-@Composable
-fun TopBarLarge(
-    title: String,
-    onBell: (() -> Unit)? = null,
-    onAvatar: (() -> Unit)? = null,
-    trailing: (@Composable RowScope.() -> Unit)? = null
-) {
-    Surface(shadowElevation = 2.dp, tonalElevation = 0.dp) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.weight(1f))
-            if (trailing != null) trailing() else {
-                IconButton(onClick = { onBell?.invoke() }) {
-                    Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
-                }
-                IconButton(onClick = { onAvatar?.invoke() }) {
-                    Icon(Icons.Outlined.Person, contentDescription = "Profile")
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun TopBarLarge(
+//    title: String,
+//    onBell: (() -> Unit)? = null,
+//    onAvatar: (() -> Unit)? = null,
+//    trailing: (@Composable RowScope.() -> Unit)? = null
+//) {
+//    Surface(shadowElevation = 2.dp, tonalElevation = 0.dp) {
+//        Row(
+//            Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp, vertical = 12.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+//            Spacer(Modifier.weight(1f))
+//            if (trailing != null) trailing() else {
+//                IconButton(onClick = { onBell?.invoke() }) {
+//                    Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
+//                }
+//                IconButton(onClick = { onAvatar?.invoke() }) {
+//                    Icon(Icons.Outlined.Person, contentDescription = "Profile")
+//                }
+//            }
+//        }
+//    }
+//}
 
-/** Generic list tile (kept for other screens). */
 @Composable
 fun Tile(
     title: String,
     subtitle: String,
     icon: @Composable () -> Unit,
     onClick: () -> Unit,
-    minHeight: Dp = 96.dp
+    minHeight: Dp = 96.dp,
+    accent: Color = MaterialTheme.colorScheme.primary
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -169,7 +154,7 @@ fun Tile(
                 Modifier
                     .size(46.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    .background(accent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) { icon() }
             Spacer(Modifier.width(12.dp))
@@ -183,14 +168,7 @@ fun Tile(
             Modifier
                 .fillMaxWidth()
                 .height(6.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.tertiary
-                        )
-                    )
-                )
+                .background(accent)
         )
     }
 }
@@ -209,33 +187,24 @@ fun EmptyIllustration(text: String) {
     }
 }
 
-/** Circular action button for the Home quick actions grid. Now accepts a custom background brush. */
+/** Round action (solid color). */
 @Composable
 fun RoundAction(
     title: String,
     icon: ImageVector,
     onClick: () -> Unit,
     size: Dp = 84.dp,
-    backgroundBrush: Brush = Brush.linearGradient(
-        listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-        )
-    )
+    bgColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(min = size)) {
         ElevatedCard(
             onClick = onClick,
             shape = CircleShape,
-            modifier = Modifier.size(size)
+            modifier = Modifier.size(size),
+            colors = CardDefaults.elevatedCardColors(containerColor = bgColor)
         ) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(backgroundBrush),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = title)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = title, tint = Color.White)
             }
         }
         Spacer(Modifier.height(8.dp))
