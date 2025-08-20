@@ -1,19 +1,26 @@
 package com.anever.school.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.anever.school.ui.design.*
+import com.anever.school.R
+import com.anever.school.ui.design.EduHeroHeader
+import com.anever.school.ui.design.PastelTile
+import com.anever.school.ui.design.eduColor
 
 @Composable
 fun HomeScreen(
@@ -25,12 +32,6 @@ fun HomeScreen(
     onOpenTransport: () -> Unit = {},
     onOpenLibrary: () -> Unit = {},
 ) {
-    val cats = listOf(
-        HomeCat("Biology", Icons.Filled.Science),
-        HomeCat("Animals", Icons.Filled.Pets),
-        HomeCat("Geography", Icons.Filled.Public),
-        HomeCat("Science", Icons.Filled.Science)
-    )
 
     val actions = listOf(
         QuickAction("Exams", Icons.Filled.School, onOpenExamSchedule),
@@ -43,20 +44,16 @@ fun HomeScreen(
     )
 
     Column(Modifier.fillMaxSize()) {
-        EduHeroHeader(title = "Featured AR Gallery", subtitle = "Explore and learn something new", seed = "home") {
-            Spacer(Modifier.height(4.dp))
-            ProgressRing(progress = 0.82f, seed = "attendance")
-            Spacer(Modifier.height(4.dp))
-            Text("Attendance", style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color.White)
-        }
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        EduHeroHeader(
+            title = "Home",
+            subtitle = "Explore and learn something new",
+            seed = "home"
         ) {
-            items(cats) { c -> CategoryBubble(title = c.title, icon = c.icon, seed = c.title) }
+            // Only the app logo in header (attendance removed)
+            LogoTile()
         }
 
+        // Pastel action tiles
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 120.dp),
             contentPadding = PaddingValues(16.dp),
@@ -64,10 +61,14 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(actions) { it -> PastelTile(title = it.title, icon = it.icon, onClick = it.onClick, seed = it.title) }
+            items(actions) { it ->
+                PastelTile(title = it.title, icon = it.icon, onClick = it.onClick, seed = it.title)
+            }
         }
     }
 }
+
+/* ------------ Helpers ------------ */
 
 private data class QuickAction(
     val title: String,
@@ -79,3 +80,24 @@ private data class HomeCat(
     val title: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector
 )
+
+/** Square, rounded tile with the app icon (replace drawable if you have a custom logo). */
+@Composable
+private fun LogoTile() {
+    val seed = "AppLogo"
+    val base = eduColor(seed)
+    val bg = lerp(base, Color.White, 0.82f)
+    ElevatedCard(
+        colors = CardDefaults.elevatedCardColors(containerColor = bg),
+        modifier = Modifier.size(72.dp),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = R.drawable.zen_logo_square_transparent),
+                contentDescription = "App logo",
+                modifier = Modifier.size(40.dp)
+            )
+        }
+    }
+}
