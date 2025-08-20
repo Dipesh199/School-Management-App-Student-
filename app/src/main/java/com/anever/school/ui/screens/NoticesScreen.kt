@@ -15,57 +15,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anever.school.data.Repository
 import com.anever.school.data.model.Notice
-import kotlinx.datetime.*
+import com.anever.school.ui.design.*
 
 @Composable
-fun NoticesScreen(
-    onOpenDetails: (String) -> Unit
-) {
+fun NoticesScreen(onOpenDetails: (String) -> Unit) {
     val repo = remember { Repository() }
+    var search by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf<String?>(null) }
 
-    // Filters
-    val categories = listOf("All", "Class", "Exams", "Events")
-    var selectedCat by remember { mutableStateOf("All") }
-    var query by remember { mutableStateOf("") }
-
-    // Data
-    var items by remember { mutableStateOf(repo.getNotices(null, null)) }
-    fun refresh() {
-        val cat = if (selectedCat == "All") null else selectedCat
-        items = repo.getNotices(cat, query.trim())
-    }
-
-    LaunchedEffect(selectedCat, query) { refresh() }
+    fun items() = repo.getNotices(search.ifBlank { null }, category)
+    var list by remember { mutableStateOf(items()) }
+    val refresh = { list = items() }
 
     Column(Modifier.fillMaxSize()) {
-        // Filter chips
+        EduHeroHeader(title = "Notices", subtitle = "School & class announcements", seed = "notices")
+
+        val cats = remember { listOf("All", "Class", "Exams", "Events") }
         LazyRow(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(categories) { c ->
-                FilterChip(
-                    selected = selectedCat == c,
-                    onClick = { selectedCat = c },
-                    label = { Text(c) }
-                )
+            items(cats) { c ->
+                val selected = (category == null && c == "All") || (category == c)
+                FilterChip(selected = selected, onClick = {
+                    category = if (c == "All") null else c
+                    refresh()
+                }, label = { Text(c) })
             }
         }
 
-        // Search
         OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            value = search,
+            onValueChange = { search = it; refresh() },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             label = { Text("Search notices") },
             singleLine = true
         )
         Spacer(Modifier.height(8.dp))
 
-        // List
-        val list = items
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
@@ -74,15 +61,12 @@ fun NoticesScreen(
             if (list.isEmpty()) {
                 item { Text("No notices") }
             } else {
-                items(list, key = { it.notice.id }) { it ->
+                items(list, key = { it.notice.id }) { row ->
                     NoticeRow(
-                        notice = it.notice,
-                        bookmarked = it.isBookmarked,
-                        onToggleBookmark = {
-                            repo.toggleNoticeBookmark(it.notice.id)
-                            refresh()
-                        },
-                        onOpen = { onOpenDetails(it.notice.id) }
+                        notice = row.notice,
+                        bookmarked = row.isBookmarked,
+                        onToggleBookmark = { repo.toggleNoticeBookmark(row.notice.id); refresh() },
+                        onOpen = { onOpenDetails(row.notice.id) }
                     )
                 }
             }
@@ -97,22 +81,17 @@ private fun NoticeRow(
     onToggleBookmark: () -> Unit,
     onOpen: () -> Unit
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    EduCard(seed = notice.title, modifier = Modifier.clickable { onOpen() }) {
         ListItem(
             headlineContent = { Text(notice.title, fontWeight = FontWeight.SemiBold) },
-            supportingContent = {
-                Text("${notice.from} • ${notice.postedAt.date} ${notice.postedAt.time}")
-            },
+            supportingContent = { Text("${notice.from} • ${notice.postedAt.date} ${notice.postedAt.time}") },
             trailingContent = {
                 IconButton(onClick = onToggleBookmark) {
                     if (bookmarked) Icon(Icons.Filled.Bookmark, contentDescription = "Bookmarked")
                     else Icon(Icons.Outlined.BookmarkBorder, contentDescription = "Bookmark")
                 }
             },
-            overlineContent = { AssistChip(onClick = {}, label = { Text(notice.category) }) },
-            modifier = Modifier.clickable { onOpen() }
+            overlineContent = { AssistChip(onClick = {}, label = { Text(notice.category) }) }
         )
     }
 }

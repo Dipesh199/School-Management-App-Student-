@@ -16,29 +16,36 @@ import com.anever.school.data.model.Subject
 import com.anever.school.ui.design.*
 
 @Composable
-fun AssignmentsScreen(onOpenAssignment: (String) -> Unit) {
+fun AssignmentsScreen(
+    onOpenAssignment: (String) -> Unit
+) {
     val repo = remember { Repository() }
-    val assignments = remember { repo.getAllAssignments() }
+    val all = remember { repo.getAllAssignments() }
     val subjects = remember { repo.getAllSubjects() }
     val subjectMap = remember(subjects) { subjects.associateBy { it.id } }
 
-    var filter by remember { mutableStateOf(AssignFilter.TODO) }
+    var filter by remember { mutableStateOf(Filter.ToDo) }
     var subjectId by remember { mutableStateOf<String?>(null) }
 
-    val filtered = remember(assignments, filter, subjectId) {
-        assignments.filter { a ->
+    val filtered = remember(all, filter, subjectId) {
+        all.filter { a ->
             (subjectId == null || a.subjectId == subjectId) &&
                     when (filter) {
-                        AssignFilter.ALL -> true
-                        AssignFilter.TODO -> a.status == AssignmentStatus.todo
-                        AssignFilter.SUBMITTED -> a.status == AssignmentStatus.submitted
-                        AssignFilter.GRADED -> a.status == AssignmentStatus.graded
+                        Filter.All -> true
+                        Filter.ToDo -> a.status == AssignmentStatus.todo
+                        Filter.Submitted -> a.status == AssignmentStatus.submitted
+                        Filter.Graded -> a.status == AssignmentStatus.graded
                     }
-        }.sortedBy { it.dueAt }
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
-        TopBarLarge(title = "Assignments")
+        EduHeroHeader(
+            title = "Assignments",
+            subtitle = "Track homework and submissions",
+            seed = "assignments"
+        )
+
         FiltersRow(filter, onChange = { filter = it })
         SubjectsRow(subjects, subjectId) { subjectId = it }
 
@@ -71,11 +78,11 @@ fun AssignmentsScreen(onOpenAssignment: (String) -> Unit) {
     }
 }
 
-private enum class AssignFilter(val label: String) { TODO("To-Do"), SUBMITTED("Submitted"), GRADED("Graded"), ALL("All") }
+private enum class Filter(val label: String) { ToDo("To-Do"), Submitted("Submitted"), Graded("Graded"), All("All") }
 
 @Composable
-private fun FiltersRow(current: AssignFilter, onChange: (AssignFilter) -> Unit) {
-    val items = listOf(AssignFilter.TODO, AssignFilter.SUBMITTED, AssignFilter.GRADED, AssignFilter.ALL)
+private fun FiltersRow(current: Filter, onChange: (Filter) -> Unit) {
+    val items = listOf(Filter.ToDo, Filter.Submitted, Filter.Graded, Filter.All)
     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items) { it -> FilterChip(selected = current == it, onClick = { onChange(it) }, label = { Text(it.label) }) }
     }

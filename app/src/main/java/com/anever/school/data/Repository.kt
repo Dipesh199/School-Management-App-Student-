@@ -285,7 +285,7 @@ class Repository(
             }
             else -> {
                 // Next day pickup
-                TransportEta("Completed", "next pickup tomorrow at ${stop.pickup}")
+                TransportEta("Next Pickup", "tomorrow at ${stop.pickup}")
             }
         }
     }
